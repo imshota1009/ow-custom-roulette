@@ -1,0 +1,1211 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OW カスタムルーレット 🐱</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0a0e17;
+            --bg-card: #141b2d;
+            --bg-card-hover: #1c2541;
+            --accent-orange: #f99e1a;
+            --accent-blue: #3db8f5;
+            --tank-color: #f1b932;
+            --dps-color: #e03c3c;
+            --support-color: #59c957;
+            --text-primary: #eef0f5;
+            --text-secondary: #8892a4;
+            --border-glow: rgba(249, 158, 26, 0.3);
+            --shadow-glow: 0 0 30px rgba(249, 158, 26, 0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ===== 背景パーティクル ===== */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .particles span {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: var(--accent-orange);
+            border-radius: 50%;
+            opacity: 0;
+            animation: particle-float 6s infinite;
+        }
+
+        @keyframes particle-float {
+            0% {
+                opacity: 0;
+                transform: translateY(100vh) scale(0);
+            }
+
+            20% {
+                opacity: 0.6;
+            }
+
+            100% {
+                opacity: 0;
+                transform: translateY(-20vh) scale(1.5);
+            }
+        }
+
+        /* ===== ヘッダー ===== */
+        .app-header {
+            text-align: center;
+            padding: 30px 20px 15px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .app-header h1 {
+            font-size: 2.2rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--accent-orange), #ff6b35, var(--accent-blue));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 2px;
+            text-shadow: none;
+        }
+
+        .app-header p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+
+        /* ===== メインコンテナ ===== */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 20px 40px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ===== 画面切り替え ===== */
+        .screen {
+            display: none;
+            animation: fadeSlideIn 0.6s ease;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        @keyframes fadeSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ===== 進捗バー ===== */
+        .progress-section {
+            margin-bottom: 25px;
+        }
+
+        .progress-bar-wrapper {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            height: 10px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-orange), var(--accent-blue));
+            border-radius: 20px;
+            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            width: 0%;
+        }
+
+        .progress-text {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* ===== プレイヤーカード ===== */
+        .player-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 14px;
+        }
+
+        .player-card {
+            background: var(--bg-card);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 14px;
+            padding: 18px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .player-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-orange), var(--accent-blue));
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .player-card:hover,
+        .player-card:focus-within {
+            border-color: rgba(249, 158, 26, 0.2);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .player-card:hover::before,
+        .player-card:focus-within::before {
+            opacity: 1;
+        }
+
+        .player-card.completed {
+            border-color: rgba(89, 201, 87, 0.3);
+            background: linear-gradient(135deg, var(--bg-card), rgba(89, 201, 87, 0.05));
+        }
+
+        .player-card.completed::before {
+            background: var(--support-color);
+            opacity: 1;
+        }
+
+        .player-num {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        /* ===== インプット ===== */
+        .input-group {
+            margin-bottom: 10px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+            letter-spacing: 0.5px;
+        }
+
+        .input-group label.tank {
+            color: var(--tank-color);
+        }
+
+        .input-group label.dps {
+            color: var(--dps-color);
+        }
+
+        .input-group label.support {
+            color: var(--support-color);
+        }
+
+        .input-group label.name {
+            color: var(--accent-blue);
+        }
+
+        .input-group input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            padding: 9px 12px;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+            outline: none;
+        }
+
+        .input-group input:focus {
+            border-color: var(--accent-orange);
+            box-shadow: 0 0 0 3px rgba(249, 158, 26, 0.1);
+        }
+
+        .input-group input::placeholder {
+            color: rgba(255, 255, 255, 0.2);
+        }
+
+        .role-icon {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            margin-right: 4px;
+            vertical-align: middle;
+        }
+
+        .role-icon.tank-icon {
+            background: var(--tank-color);
+        }
+
+        .role-icon.dps-icon {
+            background: var(--dps-color);
+        }
+
+        .role-icon.support-icon {
+            background: var(--support-color);
+        }
+
+        /* ===== ボタン ===== */
+        .btn-primary {
+            display: block;
+            width: 100%;
+            max-width: 400px;
+            margin: 30px auto 0;
+            padding: 16px;
+            background: linear-gradient(135deg, var(--accent-orange), #ff6b35);
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            font-family: inherit;
+            font-size: 1.1rem;
+            font-weight: 900;
+            cursor: pointer;
+            letter-spacing: 2px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 20px rgba(249, 158, 26, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn-primary:hover::after {
+            left: 100%;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(249, 158, 26, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-secondary {
+            display: block;
+            width: 100%;
+            max-width: 300px;
+            margin: 20px auto 0;
+            padding: 12px;
+            background: transparent;
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            color: var(--text-secondary);
+            font-family: inherit;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            letter-spacing: 1px;
+            transition: all 0.3s;
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+        }
+
+        /* ===== ルーレット画面 ===== */
+        .roulette-screen {
+            text-align: center;
+            padding-top: 30px;
+        }
+
+        /* ねこセクション */
+        .cat-section {
+            margin-bottom: 30px;
+        }
+
+        .cat-img-wrapper {
+            width: 140px;
+            height: 140px;
+            margin: 0 auto 15px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(249, 158, 26, 0.15), rgba(61, 184, 245, 0.15));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: cat-bounce 2s ease-in-out infinite;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cat-img-wrapper img {
+            width: 110px;
+            height: 110px;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        .cat-emoji {
+            font-size: 70px;
+            line-height: 1;
+        }
+
+        @keyframes cat-bounce {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-8px);
+            }
+        }
+
+        /* 吹き出し */
+        .speech-bubble {
+            background: var(--bg-card);
+            border: 2px solid var(--accent-orange);
+            border-radius: 18px;
+            padding: 20px 28px;
+            max-width: 500px;
+            margin: 0 auto;
+            position: relative;
+            font-size: 1.1rem;
+            line-height: 1.7;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 25px rgba(249, 158, 26, 0.1);
+        }
+
+        .speech-bubble::before {
+            content: '';
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 12px solid transparent;
+            border-bottom-color: var(--accent-orange);
+            border-top: none;
+        }
+
+        .speech-bubble::after {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 10px solid transparent;
+            border-bottom-color: var(--bg-card);
+            border-top: none;
+        }
+
+        /* ルーレットスロット */
+        .slot-machine {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .slot-column {
+            background: var(--bg-card);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            width: 130px;
+            height: 70px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .slot-column-label {
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+            margin-bottom: 5px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .slot-reel {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            transition: top 0.3s ease;
+        }
+
+        .slot-item {
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.95rem;
+            padding: 0 8px;
+            text-align: center;
+        }
+
+        /* ===== 結果画面 ===== */
+        .result-screen {
+            padding-top: 10px;
+        }
+
+        .result-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .result-header h2 {
+            font-size: 1.8rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--accent-orange), var(--accent-blue));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .teams-container {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 20px;
+            align-items: start;
+        }
+
+        @media (max-width: 700px) {
+            .teams-container {
+                grid-template-columns: 1fr;
+            }
+
+            .vs-divider {
+                display: none;
+            }
+        }
+
+        .team-block {
+            background: var(--bg-card);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            overflow: hidden;
+        }
+
+        .team-header {
+            padding: 15px;
+            text-align: center;
+            font-weight: 900;
+            font-size: 1.1rem;
+            letter-spacing: 2px;
+        }
+
+        .team-a .team-header {
+            background: linear-gradient(135deg, rgba(249, 158, 26, 0.2), rgba(249, 158, 26, 0.05));
+            color: var(--accent-orange);
+        }
+
+        .team-b .team-header {
+            background: linear-gradient(135deg, rgba(61, 184, 245, 0.2), rgba(61, 184, 245, 0.05));
+            color: var(--accent-blue);
+        }
+
+        .team-member {
+            padding: 12px 18px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.04);
+            transition: background 0.2s;
+        }
+
+        .team-member:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .member-role-badge {
+            width: 50px;
+            padding: 4px 0;
+            text-align: center;
+            font-size: 0.65rem;
+            font-weight: 900;
+            border-radius: 6px;
+            letter-spacing: 1px;
+            flex-shrink: 0;
+        }
+
+        .badge-tank {
+            background: rgba(241, 185, 50, 0.15);
+            color: var(--tank-color);
+            border: 1px solid rgba(241, 185, 50, 0.3);
+        }
+
+        .badge-dps {
+            background: rgba(224, 60, 60, 0.15);
+            color: var(--dps-color);
+            border: 1px solid rgba(224, 60, 60, 0.3);
+        }
+
+        .badge-support {
+            background: rgba(89, 201, 87, 0.15);
+            color: var(--support-color);
+            border: 1px solid rgba(89, 201, 87, 0.3);
+        }
+
+        .member-info {
+            flex: 1;
+        }
+
+        .member-name {
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+
+        .member-hero {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        .vs-divider {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: 900;
+            color: var(--text-secondary);
+            opacity: 0.4;
+            padding-top: 60px;
+        }
+
+        /* ===== ルーレット中の発表カード ===== */
+        .announce-card {
+            display: none;
+            background: var(--bg-card);
+            border-radius: 16px;
+            border: 2px solid;
+            padding: 25px;
+            margin: 20px auto;
+            max-width: 400px;
+            text-align: center;
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .announce-card.show {
+            display: block;
+        }
+
+        .announce-card.team-a-card {
+            border-color: var(--accent-orange);
+            box-shadow: 0 0 30px rgba(249, 158, 26, 0.15);
+        }
+
+        .announce-card.team-b-card {
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 30px rgba(61, 184, 245, 0.15);
+        }
+
+        @keyframes popIn {
+            from {
+                opacity: 0;
+                transform: scale(0.7);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .announce-team {
+            font-size: 0.8rem;
+            font-weight: 900;
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+        }
+
+        .announce-name {
+            font-size: 1.6rem;
+            font-weight: 900;
+            margin-bottom: 8px;
+        }
+
+        .announce-role {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 3px;
+        }
+
+        .announce-hero {
+            font-size: 1.3rem;
+            font-weight: 900;
+        }
+
+        /* ===== カウンター ===== */
+        .announce-counter {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            margin-top: 15px;
+        }
+
+        /* ===== アニメーション ===== */
+        @keyframes shimmer {
+            0% {
+                background-position: -200% center;
+            }
+
+            100% {
+                background-position: 200% center;
+            }
+        }
+
+        .shimmer-text {
+            background: linear-gradient(90deg, var(--text-primary) 40%, var(--accent-orange) 50%, var(--text-primary) 60%);
+            background-size: 200%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shimmer 3s ease-in-out infinite;
+        }
+
+        /* ===== ねこの目パチパチ ===== */
+        .cat-face {
+            font-size: 80px;
+            display: inline-block;
+            position: relative;
+        }
+
+        .cat-face .eyes {
+            animation: blink 3s infinite;
+        }
+
+        @keyframes blink {
+
+            0%,
+            90%,
+            100% {
+                opacity: 1;
+            }
+
+            95% {
+                opacity: 0;
+            }
+        }
+
+        /* ===== レスポンシブ ===== */
+        @media (max-width: 600px) {
+            .app-header h1 {
+                font-size: 1.5rem;
+            }
+
+            .player-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .slot-machine {
+                gap: 8px;
+            }
+
+            .slot-column {
+                width: 100px;
+            }
+
+            .speech-bubble {
+                font-size: 0.95rem;
+                padding: 15px 18px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- パーティクル背景 -->
+    <div class="particles" id="particles"></div>
+
+    <!-- ヘッダー -->
+    <header class="app-header">
+        <h1>🎮 OW カスタムルーレット 🐱</h1>
+        <p>10人のキャラを入力して、チームとロールをルーレットで決めよう！</p>
+    </header>
+
+    <div class="container">
+
+        <!-- ===== 入力画面 ===== -->
+        <div class="screen active" id="screen-input">
+            <div class="progress-section">
+                <div class="progress-text">
+                    <span>プレイヤー入力</span>
+                    <span id="progress-count">0 / 10</span>
+                </div>
+                <div class="progress-bar-wrapper">
+                    <div class="progress-bar-fill" id="progress-fill"></div>
+                </div>
+            </div>
+
+            <div class="player-cards" id="player-cards">
+                <!-- JSで生成 -->
+            </div>
+
+            <button class="btn-primary" id="btn-start" disabled>
+                🎰 ルーレット開始！
+            </button>
+        </div>
+
+        <!-- ===== ルーレット画面 ===== -->
+        <div class="screen roulette-screen" id="screen-roulette">
+            <div class="cat-section">
+                <div class="cat-img-wrapper">
+                    <img src="cat.png" alt="ねこ"
+                        onerror="this.style.display='none'; this.parentElement.innerHTML='<span class=cat-emoji>🐱</span>';">
+                </div>
+            </div>
+
+            <div class="speech-bubble" id="speech-bubble">
+                <span class="shimmer-text">にゃ〜！ルーレット回すよ〜！</span>
+            </div>
+
+            <div class="slot-machine" id="slot-machine">
+                <div>
+                    <div class="slot-column-label">チーム</div>
+                    <div class="slot-column" id="slot-team">
+                        <div class="slot-reel" id="reel-team"></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="slot-column-label">ロール</div>
+                    <div class="slot-column" id="slot-role">
+                        <div class="slot-reel" id="reel-role"></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="slot-column-label">プレイヤー</div>
+                    <div class="slot-column" id="slot-player">
+                        <div class="slot-reel" id="reel-player"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="announce-card" id="announce-card">
+                <div class="announce-team" id="announce-team"></div>
+                <div class="announce-name" id="announce-name"></div>
+                <div class="announce-role" id="announce-role"></div>
+                <div class="announce-hero" id="announce-hero"></div>
+            </div>
+
+            <div class="announce-counter" id="announce-counter"></div>
+        </div>
+
+        <!-- ===== 結果画面 ===== -->
+        <div class="screen result-screen" id="screen-result">
+            <div class="result-header">
+                <h2>⚔️ チーム編成 ⚔️</h2>
+            </div>
+            <div class="teams-container">
+                <div class="team-block team-a" id="team-a-block">
+                    <div class="team-header">🟠 TEAM A</div>
+                </div>
+                <div class="vs-divider">VS</div>
+                <div class="team-block team-b" id="team-b-block">
+                    <div class="team-header">🔵 TEAM B</div>
+                </div>
+            </div>
+
+            <button class="btn-secondary" id="btn-retry" style="margin-top:30px;">🔄 もう一回振り分ける</button>
+            <button class="btn-secondary" id="btn-reset">📝 最初からやり直す</button>
+        </div>
+    </div>
+
+    <script>
+        // ===== データ管理 =====
+        const players = [];
+        const TOTAL_PLAYERS = 10;
+
+        // ===== 初期化 =====
+        function init() {
+            createParticles();
+            createPlayerCards();
+            setupEvents();
+        }
+
+        // ===== パーティクル生成 =====
+        function createParticles() {
+            const container = document.getElementById('particles');
+            for (let i = 0; i < 30; i++) {
+                const span = document.createElement('span');
+                span.style.left = Math.random() * 100 + '%';
+                span.style.animationDelay = Math.random() * 6 + 's';
+                span.style.animationDuration = (4 + Math.random() * 4) + 's';
+                if (Math.random() > 0.5) {
+                    span.style.background = 'var(--accent-blue)';
+                }
+                container.appendChild(span);
+            }
+        }
+
+        // ===== プレイヤーカード生成 =====
+        function createPlayerCards() {
+            const container = document.getElementById('player-cards');
+            for (let i = 0; i < TOTAL_PLAYERS; i++) {
+                const card = document.createElement('div');
+                card.className = 'player-card';
+                card.id = `card-${i}`;
+                card.innerHTML = `
+      <div class="player-num">PLAYER ${i + 1}</div>
+      <div class="input-group">
+        <label class="name">👤 名前</label>
+        <input type="text" placeholder="プレイヤー名" data-player="${i}" data-field="name">
+      </div>
+      <div class="input-group">
+        <label class="tank"><span class="role-icon tank-icon"></span>タンク</label>
+        <input type="text" placeholder="例: ラインハルト" data-player="${i}" data-field="tank">
+      </div>
+      <div class="input-group">
+        <label class="dps"><span class="role-icon dps-icon"></span>DPS</label>
+        <input type="text" placeholder="例: ゲンジ" data-player="${i}" data-field="dps">
+      </div>
+      <div class="input-group">
+        <label class="support"><span class="role-icon support-icon"></span>サポート</label>
+        <input type="text" placeholder="例: アナ" data-player="${i}" data-field="support">
+      </div>
+    `;
+                container.appendChild(card);
+            }
+        }
+
+        // ===== イベント設定 =====
+        function setupEvents() {
+            document.querySelectorAll('.player-card input').forEach(input => {
+                input.addEventListener('input', checkProgress);
+            });
+            document.getElementById('btn-start').addEventListener('click', startRoulette);
+            document.getElementById('btn-retry').addEventListener('click', retryRoulette);
+            document.getElementById('btn-reset').addEventListener('click', resetAll);
+        }
+
+        // ===== 進捗チェック =====
+        function checkProgress() {
+            let completed = 0;
+            for (let i = 0; i < TOTAL_PLAYERS; i++) {
+                const card = document.getElementById(`card-${i}`);
+                const inputs = card.querySelectorAll('input');
+                const allFilled = Array.from(inputs).every(inp => inp.value.trim() !== '');
+                if (allFilled) {
+                    completed++;
+                    card.classList.add('completed');
+                } else {
+                    card.classList.remove('completed');
+                }
+            }
+
+            document.getElementById('progress-count').textContent = `${completed} / ${TOTAL_PLAYERS}`;
+            document.getElementById('progress-fill').style.width = `${(completed / TOTAL_PLAYERS) * 100}%`;
+
+            const btn = document.getElementById('btn-start');
+            btn.disabled = completed < TOTAL_PLAYERS;
+        }
+
+        // ===== プレイヤーデータ収集 =====
+        function collectPlayers() {
+            players.length = 0;
+            for (let i = 0; i < TOTAL_PLAYERS; i++) {
+                const card = document.getElementById(`card-${i}`);
+                const name = card.querySelector('[data-field="name"]').value.trim();
+                const tank = card.querySelector('[data-field="tank"]').value.trim();
+                const dps = card.querySelector('[data-field="dps"]').value.trim();
+                const support = card.querySelector('[data-field="support"]').value.trim();
+                players.push({ name, tank, dps, support });
+            }
+        }
+
+        // ===== チーム振り分け =====
+        function shuffle(arr) {
+            const a = [...arr];
+            for (let i = a.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [a[i], a[j]] = [a[j], a[i]];
+            }
+            return a;
+        }
+
+        function assignTeams() {
+            const shuffled = shuffle(players);
+
+            // 5人ずつに分割
+            const teamAPlayers = shuffled.slice(0, 5);
+            const teamBPlayers = shuffled.slice(5, 10);
+
+            // ロール割り当て: タンク1, DPS2, サポ2
+            const roles = ['tank', 'dps', 'dps', 'support', 'support'];
+
+            function assignRoles(team) {
+                const shuffledRoles = shuffle(roles);
+                return team.map((player, idx) => {
+                    const role = shuffledRoles[idx];
+                    let hero;
+                    if (role === 'tank') hero = player.tank;
+                    else if (role === 'dps') hero = player.dps;
+                    else hero = player.support;
+                    return { ...player, role, hero };
+                });
+            }
+
+            const teamA = assignRoles(teamAPlayers);
+            const teamB = assignRoles(teamBPlayers);
+
+            // ロール順にソート（タンク→DPS→サポ）
+            const roleOrder = { tank: 0, dps: 1, support: 2 };
+            teamA.sort((a, b) => roleOrder[a.role] - roleOrder[b.role]);
+            teamB.sort((a, b) => roleOrder[a.role] - roleOrder[b.role]);
+
+            return { teamA, teamB };
+        }
+
+        // ===== ルーレット開始 =====
+        async function startRoulette() {
+            collectPlayers();
+            const { teamA, teamB } = assignTeams();
+
+            // 画面切り替え
+            showScreen('screen-roulette');
+
+            const bubble = document.getElementById('speech-bubble');
+            const announceCard = document.getElementById('announce-card');
+            const counter = document.getElementById('announce-counter');
+            announceCard.classList.remove('show');
+
+            // スロットリール準備
+            prepareSlotReels(teamA, teamB);
+
+            // 少し待って開始
+            await wait(1500);
+
+            const allMembers = [];
+            teamA.forEach(m => allMembers.push({ ...m, team: 'A' }));
+            teamB.forEach(m => allMembers.push({ ...m, team: 'B' }));
+
+            // ランダム順で発表
+            const announceOrder = shuffle(allMembers);
+
+            for (let i = 0; i < announceOrder.length; i++) {
+                const member = announceOrder[i];
+                counter.textContent = `${i + 1} / ${announceOrder.length}`;
+
+                // スロット回転演出
+                bubble.innerHTML = '<span class="shimmer-text">にゃにゃにゃ… 🎰</span>';
+                announceCard.classList.remove('show');
+                await spinSlots(member);
+
+                // 発表！
+                const roleName = getRoleDisplayName(member.role);
+                const roleColor = getRoleColor(member.role);
+                const teamName = member.team === 'A' ? 'チームA 🟠' : 'チームB 🔵';
+                const teamClass = member.team === 'A' ? 'team-a-card' : 'team-b-card';
+
+                bubble.innerHTML = `
+      <span>${member.name}さんは<br>
+      <b style="color:${member.team === 'A' ? 'var(--accent-orange)' : 'var(--accent-blue)'}">${teamName}</b>の
+      <b style="color:${roleColor}">${roleName}</b>！<br>
+      使うキャラは <b style="color:${roleColor}">${member.hero}</b> だにゃ！🐱</span>
+    `;
+
+                announceCard.className = 'announce-card show ' + teamClass;
+                document.getElementById('announce-team').textContent = teamName;
+                document.getElementById('announce-team').style.color = member.team === 'A' ? 'var(--accent-orange)' : 'var(--accent-blue)';
+                document.getElementById('announce-name').textContent = member.name;
+                document.getElementById('announce-role').textContent = roleName;
+                document.getElementById('announce-role').style.color = roleColor;
+                document.getElementById('announce-hero').textContent = `🎯 ${member.hero}`;
+                document.getElementById('announce-hero').style.color = roleColor;
+
+                await wait(2800);
+            }
+
+            // 全員発表完了
+            bubble.innerHTML = '<span>全員決まったにゃ！🎉 結果を表示するにゃ〜！</span>';
+            await wait(2000);
+
+            // 結果画面
+            showResults(teamA, teamB);
+        }
+
+        // ===== スロットリール =====
+        function prepareSlotReels(teamA, teamB) {
+            const teams = ['A', 'A', 'B', 'B', 'A', 'B'];
+            const roleTexts = ['タンク', 'DPS', 'DPS', 'サポート', 'サポート', 'タンク'];
+            const allNames = players.map(p => p.name);
+
+            ['reel-team', 'reel-role', 'reel-player'].forEach(id => {
+                const reel = document.getElementById(id);
+                reel.innerHTML = '';
+                let items;
+                if (id === 'reel-team') items = teams;
+                else if (id === 'reel-role') items = roleTexts;
+                else items = allNames;
+
+                // 沢山コピーしてスクロール感を出す
+                for (let r = 0; r < 5; r++) {
+                    items.forEach(text => {
+                        const div = document.createElement('div');
+                        div.className = 'slot-item';
+                        div.textContent = text;
+                        reel.appendChild(div);
+                    });
+                }
+            });
+        }
+
+        async function spinSlots(member) {
+            const reels = [
+                { id: 'reel-team', finalText: member.team === 'A' ? 'TEAM A' : 'TEAM B' },
+                { id: 'reel-role', finalText: getRoleDisplayName(member.role) },
+                { id: 'reel-player', finalText: member.name },
+            ];
+
+            // 回転開始
+            reels.forEach(r => {
+                const el = document.getElementById(r.id);
+                let pos = 0;
+                const speed = 15 + Math.random() * 10;
+                r._interval = setInterval(() => {
+                    pos -= speed;
+                    if (pos < -el.scrollHeight / 2) pos = 0;
+                    el.style.top = pos + 'px';
+                    el.style.transition = 'none';
+                }, 30);
+            });
+
+            await wait(800);
+
+            // 1つずつ停止
+            for (let i = 0; i < reels.length; i++) {
+                clearInterval(reels[i]._interval);
+                const el = document.getElementById(reels[i].id);
+                // 最終位置に確定表示
+                el.innerHTML = `<div class="slot-item" style="font-weight:900; color:${i === 0 ? (member.team === 'A' ? 'var(--accent-orange)' : 'var(--accent-blue)') : getRoleColor(member.role)}">${reels[i].finalText}</div>`;
+                el.style.top = '0px';
+                el.style.transition = 'top 0.3s ease';
+                await wait(400);
+            }
+
+            await wait(300);
+        }
+
+        // ===== 結果表示 =====
+        function showResults(teamA, teamB) {
+            showScreen('screen-result');
+
+            const blockA = document.getElementById('team-a-block');
+            const blockB = document.getElementById('team-b-block');
+
+            // ヘッダー以外をクリア
+            blockA.innerHTML = '<div class="team-header">🟠 TEAM A</div>';
+            blockB.innerHTML = '<div class="team-header">🔵 TEAM B</div>';
+
+            function addMembers(block, members) {
+                members.forEach(m => {
+                    const div = document.createElement('div');
+                    div.className = 'team-member';
+                    const roleName = getRoleDisplayName(m.role);
+                    const badgeClass = m.role === 'tank' ? 'badge-tank' : m.role === 'dps' ? 'badge-dps' : 'badge-support';
+                    div.innerHTML = `
+        <div class="member-role-badge ${badgeClass}">${roleName}</div>
+        <div class="member-info">
+          <div class="member-name">${m.name}</div>
+          <div class="member-hero">🎯 ${m.hero}</div>
+        </div>
+      `;
+                    block.appendChild(div);
+                });
+            }
+
+            addMembers(blockA, teamA);
+            addMembers(blockB, teamB);
+        }
+
+        // ===== もう一回ルーレットやり直し =====
+        function retryRoulette() {
+            startRoulette();
+        }
+
+        // ===== 完全リセット =====
+        function resetAll() {
+            document.querySelectorAll('.player-card input').forEach(inp => inp.value = '');
+            document.querySelectorAll('.player-card').forEach(c => c.classList.remove('completed'));
+            checkProgress();
+            showScreen('screen-input');
+        }
+
+        // ===== ユーティリティ =====
+        function showScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+
+        function getRoleDisplayName(role) {
+            return { tank: 'タンク', dps: 'DPS', support: 'サポート' }[role] || role;
+        }
+
+        function getRoleColor(role) {
+            return { tank: 'var(--tank-color)', dps: 'var(--dps-color)', support: 'var(--support-color)' }[role] || 'inherit';
+        }
+
+        function wait(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // ===== 起動 =====
+        init();
+    </script>
+
+</body>
+
+</html>

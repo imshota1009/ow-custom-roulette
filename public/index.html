@@ -1,0 +1,1757 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OW カスタムルーレット 🐱</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0a0e17;
+            --bg-card: #141b2d;
+            --bg-card-hover: #1c2541;
+            --accent-orange: #f99e1a;
+            --accent-blue: #3db8f5;
+            --tank-color: #f1b932;
+            --dps-color: #e03c3c;
+            --support-color: #59c957;
+            --text-primary: #eef0f5;
+            --text-secondary: #8892a4;
+            --border-glow: rgba(249, 158, 26, 0.3);
+            --shadow-glow: 0 0 30px rgba(249, 158, 26, 0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* パーティクル背景 */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .particles span {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: var(--accent-orange);
+            border-radius: 50%;
+            opacity: 0;
+            animation: pfloat 6s infinite;
+        }
+
+        @keyframes pfloat {
+            0% {
+                opacity: 0;
+                transform: translateY(100vh) scale(0);
+            }
+
+            20% {
+                opacity: 0.6;
+            }
+
+            100% {
+                opacity: 0;
+                transform: translateY(-20vh) scale(1.5);
+            }
+        }
+
+        /* ヘッダー */
+        .app-header {
+            text-align: center;
+            padding: 30px 20px 15px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .app-header h1 {
+            font-size: 2.2rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--accent-orange), #ff6b35, var(--accent-blue));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 2px;
+        }
+
+        .app-header p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 20px 40px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* 画面切り替え */
+        .screen {
+            display: none;
+            animation: fadeIn 0.6s ease;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ===== ロビー画面 ===== */
+        .lobby-section {
+            text-align: center;
+            padding-top: 60px;
+        }
+
+        .lobby-section h2 {
+            font-size: 1.5rem;
+            font-weight: 900;
+            margin-bottom: 25px;
+            color: var(--accent-orange);
+        }
+
+        .lobby-buttons {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .btn-create,
+        .btn-join {
+            width: 300px;
+            padding: 18px;
+            border: none;
+            border-radius: 14px;
+            font-family: inherit;
+            font-size: 1.1rem;
+            font-weight: 900;
+            cursor: pointer;
+            letter-spacing: 2px;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-create {
+            background: linear-gradient(135deg, var(--accent-orange), #ff6b35);
+            color: #fff;
+            box-shadow: 0 4px 20px rgba(249, 158, 26, 0.3);
+        }
+
+        .btn-create:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(249, 158, 26, 0.4);
+        }
+
+        .btn-join {
+            background: linear-gradient(135deg, var(--accent-blue), #2196f3);
+            color: #fff;
+            box-shadow: 0 4px 20px rgba(61, 184, 245, 0.3);
+        }
+
+        .btn-join:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(61, 184, 245, 0.4);
+        }
+
+        .join-input-group {
+            display: none;
+            margin-top: 20px;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .join-input-group.show {
+            display: flex;
+        }
+
+        .join-input {
+            width: 300px;
+            padding: 14px;
+            border-radius: 10px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            background: var(--bg-card);
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 1rem;
+            text-align: center;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .join-input:focus {
+            border-color: var(--accent-blue);
+        }
+
+        .btn-join-go {
+            padding: 12px 40px;
+            border: none;
+            border-radius: 10px;
+            background: var(--accent-blue);
+            color: #fff;
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-join-go:hover {
+            transform: translateY(-2px);
+        }
+
+        /* ===== 部屋画面 ===== */
+        .room-info {
+            background: var(--bg-card);
+            border-radius: 14px;
+            padding: 18px;
+            margin-bottom: 20px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .room-id-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 5px;
+        }
+
+        .room-id-value {
+            font-size: 1.3rem;
+            font-weight: 900;
+            color: var(--accent-orange);
+            letter-spacing: 3px;
+        }
+
+        .room-url-area {
+            margin-top: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .room-url-text {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            word-break: break-all;
+            max-width: 400px;
+        }
+
+        .btn-copy {
+            padding: 8px 18px;
+            border: 1px solid var(--accent-orange);
+            border-radius: 8px;
+            background: transparent;
+            color: var(--accent-orange);
+            font-family: inherit;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-copy:hover {
+            background: var(--accent-orange);
+            color: #fff;
+        }
+
+        .btn-copy.copied {
+            background: var(--support-color);
+            border-color: var(--support-color);
+            color: #fff;
+        }
+
+        /* 進捗バー */
+        .progress-section {
+            margin-bottom: 20px;
+        }
+
+        .progress-bar-wrapper {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            height: 10px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-orange), var(--accent-blue));
+            border-radius: 20px;
+            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            width: 0%;
+        }
+
+        .progress-text {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* 自分のカード */
+        .my-card {
+            background: var(--bg-card);
+            border: 2px solid var(--accent-orange);
+            border-radius: 16px;
+            padding: 22px;
+            margin-bottom: 20px;
+            box-shadow: 0 0 25px rgba(249, 158, 26, 0.1);
+        }
+
+        .my-card-title {
+            font-weight: 900;
+            font-size: 1rem;
+            color: var(--accent-orange);
+            margin-bottom: 12px;
+            text-align: center;
+        }
+
+        .input-group {
+            margin-bottom: 10px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+            letter-spacing: 0.5px;
+        }
+
+        .input-group label.tank {
+            color: var(--tank-color);
+        }
+
+        .input-group label.dps {
+            color: var(--dps-color);
+        }
+
+        .input-group label.support {
+            color: var(--support-color);
+        }
+
+        .input-group label.name {
+            color: var(--accent-blue);
+        }
+
+        .input-group input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            padding: 10px 12px;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+            outline: none;
+        }
+
+        .input-group input:focus {
+            border-color: var(--accent-orange);
+            box-shadow: 0 0 0 3px rgba(249, 158, 26, 0.1);
+        }
+
+        .input-group input::placeholder {
+            color: rgba(255, 255, 255, 0.2);
+        }
+
+        .input-group input:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .role-icon {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            margin-right: 4px;
+            vertical-align: middle;
+        }
+
+        .role-icon.tank-icon {
+            background: var(--tank-color);
+        }
+
+        .role-icon.dps-icon {
+            background: var(--dps-color);
+        }
+
+        .role-icon.support-icon {
+            background: var(--support-color);
+        }
+
+        .btn-save {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, var(--accent-orange), #ff6b35);
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 900;
+            cursor: pointer;
+            letter-spacing: 1px;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        .btn-save:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-save:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-save.saved {
+            background: linear-gradient(135deg, var(--support-color), #45a045);
+        }
+
+        /* 参加者リスト */
+        .member-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .member-chip {
+            background: var(--bg-card);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 10px;
+            padding: 12px 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s;
+        }
+
+        .member-chip.filled {
+            border-color: rgba(89, 201, 87, 0.3);
+            background: linear-gradient(135deg, var(--bg-card), rgba(89, 201, 87, 0.05));
+        }
+
+        .member-chip.empty {
+            border-style: dashed;
+            border-color: rgba(255, 255, 255, 0.1);
+            opacity: 0.5;
+        }
+
+        .member-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .member-dot.online {
+            background: var(--support-color);
+            box-shadow: 0 0 8px rgba(89, 201, 87, 0.5);
+        }
+
+        .member-dot.offline {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .member-chip-name {
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .member-chip-status {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+        }
+
+        /* ===== ボタン共通 ===== */
+        .btn-primary {
+            display: block;
+            width: 100%;
+            max-width: 400px;
+            margin: 20px auto 0;
+            padding: 16px;
+            background: linear-gradient(135deg, var(--accent-orange), #ff6b35);
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            font-family: inherit;
+            font-size: 1.1rem;
+            font-weight: 900;
+            cursor: pointer;
+            letter-spacing: 2px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 20px rgba(249, 158, 26, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(249, 158, 26, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-secondary {
+            display: block;
+            width: 100%;
+            max-width: 300px;
+            margin: 20px auto 0;
+            padding: 12px;
+            background: transparent;
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            color: var(--text-secondary);
+            font-family: inherit;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            letter-spacing: 1px;
+            transition: all 0.3s;
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+        }
+
+        /* ===== ルーレット画面 ===== */
+        .roulette-screen {
+            text-align: center;
+            padding-top: 30px;
+        }
+
+        .cat-section {
+            margin-bottom: 30px;
+        }
+
+        .cat-img-wrapper {
+            width: 140px;
+            height: 140px;
+            margin: 0 auto 15px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(249, 158, 26, 0.15), rgba(61, 184, 245, 0.15));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: catbounce 2s ease-in-out infinite;
+            overflow: hidden;
+        }
+
+        .cat-img-wrapper img {
+            width: 110px;
+            height: 110px;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        .cat-emoji {
+            font-size: 70px;
+            line-height: 1;
+        }
+
+        @keyframes catbounce {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-8px);
+            }
+        }
+
+        .speech-bubble {
+            background: var(--bg-card);
+            border: 2px solid var(--accent-orange);
+            border-radius: 18px;
+            padding: 20px 28px;
+            max-width: 500px;
+            margin: 0 auto;
+            position: relative;
+            font-size: 1.1rem;
+            line-height: 1.7;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 25px rgba(249, 158, 26, 0.1);
+        }
+
+        .speech-bubble::before {
+            content: '';
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 12px solid transparent;
+            border-bottom-color: var(--accent-orange);
+            border-top: none;
+        }
+
+        .speech-bubble::after {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 10px solid transparent;
+            border-bottom-color: var(--bg-card);
+            border-top: none;
+        }
+
+        .slot-machine {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .slot-column {
+            background: var(--bg-card);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            width: 130px;
+            height: 70px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .slot-column-label {
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+            margin-bottom: 5px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .slot-reel {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            transition: top 0.3s ease;
+        }
+
+        .slot-item {
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.95rem;
+            padding: 0 8px;
+            text-align: center;
+        }
+
+        .announce-card {
+            display: none;
+            background: var(--bg-card);
+            border-radius: 16px;
+            border: 2px solid;
+            padding: 25px;
+            margin: 20px auto;
+            max-width: 400px;
+            text-align: center;
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .announce-card.show {
+            display: block;
+        }
+
+        .announce-card.team-a-card {
+            border-color: var(--accent-orange);
+            box-shadow: 0 0 30px rgba(249, 158, 26, 0.15);
+        }
+
+        .announce-card.team-b-card {
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 30px rgba(61, 184, 245, 0.15);
+        }
+
+        @keyframes popIn {
+            from {
+                opacity: 0;
+                transform: scale(0.7);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .announce-team {
+            font-size: 0.8rem;
+            font-weight: 900;
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+        }
+
+        .announce-name {
+            font-size: 1.6rem;
+            font-weight: 900;
+            margin-bottom: 8px;
+        }
+
+        .announce-role {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 3px;
+        }
+
+        .announce-hero {
+            font-size: 1.3rem;
+            font-weight: 900;
+        }
+
+        .announce-counter {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            margin-top: 15px;
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: -200% center;
+            }
+
+            100% {
+                background-position: 200% center;
+            }
+        }
+
+        .shimmer-text {
+            background: linear-gradient(90deg, var(--text-primary) 40%, var(--accent-orange) 50%, var(--text-primary) 60%);
+            background-size: 200%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shimmer 3s ease-in-out infinite;
+        }
+
+        /* ===== 結果画面 ===== */
+        .result-screen {
+            padding-top: 10px;
+        }
+
+        .result-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .result-header h2 {
+            font-size: 1.8rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--accent-orange), var(--accent-blue));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .teams-container {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 20px;
+            align-items: start;
+        }
+
+        @media (max-width: 700px) {
+            .teams-container {
+                grid-template-columns: 1fr;
+            }
+
+            .vs-divider {
+                display: none;
+            }
+        }
+
+        .team-block {
+            background: var(--bg-card);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            overflow: hidden;
+        }
+
+        .team-header {
+            padding: 15px;
+            text-align: center;
+            font-weight: 900;
+            font-size: 1.1rem;
+            letter-spacing: 2px;
+        }
+
+        .team-a .team-header {
+            background: linear-gradient(135deg, rgba(249, 158, 26, 0.2), rgba(249, 158, 26, 0.05));
+            color: var(--accent-orange);
+        }
+
+        .team-b .team-header {
+            background: linear-gradient(135deg, rgba(61, 184, 245, 0.2), rgba(61, 184, 245, 0.05));
+            color: var(--accent-blue);
+        }
+
+        .team-member {
+            padding: 12px 18px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.04);
+            transition: background 0.2s;
+        }
+
+        .team-member:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .member-role-badge {
+            width: 50px;
+            padding: 4px 0;
+            text-align: center;
+            font-size: 0.65rem;
+            font-weight: 900;
+            border-radius: 6px;
+            letter-spacing: 1px;
+            flex-shrink: 0;
+        }
+
+        .badge-tank {
+            background: rgba(241, 185, 50, 0.15);
+            color: var(--tank-color);
+            border: 1px solid rgba(241, 185, 50, 0.3);
+        }
+
+        .badge-dps {
+            background: rgba(224, 60, 60, 0.15);
+            color: var(--dps-color);
+            border: 1px solid rgba(224, 60, 60, 0.3);
+        }
+
+        .badge-support {
+            background: rgba(89, 201, 87, 0.15);
+            color: var(--support-color);
+            border: 1px solid rgba(89, 201, 87, 0.3);
+        }
+
+        .member-info {
+            flex: 1;
+        }
+
+        .member-name {
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+
+        .member-hero {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        .vs-divider {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: 900;
+            color: var(--text-secondary);
+            opacity: 0.4;
+            padding-top: 60px;
+        }
+
+        /* ===== 待機メッセージ ===== */
+        .waiting-msg {
+            text-align: center;
+            padding: 30px;
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        .waiting-msg .spinner {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top-color: var(--accent-orange);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 10px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* レスポンシブ */
+        @media (max-width: 600px) {
+            .app-header h1 {
+                font-size: 1.5rem;
+            }
+
+            .member-list {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .slot-machine {
+                gap: 8px;
+            }
+
+            .slot-column {
+                width: 100px;
+            }
+
+            .speech-bubble {
+                font-size: 0.95rem;
+                padding: 15px 18px;
+            }
+
+            .btn-create,
+            .btn-join,
+            .join-input {
+                width: 100%;
+            }
+        }
+
+        /* トースト通知 */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--bg-card);
+            border: 1px solid var(--accent-orange);
+            border-radius: 10px;
+            padding: 12px 24px;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            font-weight: 700;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="particles" id="particles"></div>
+
+    <header class="app-header">
+        <h1>🎮 OW カスタムルーレット 🐱</h1>
+        <p>部屋を作ってみんなで参加！チームとロールをルーレットで決めよう！</p>
+    </header>
+
+    <div class="container">
+
+        <!-- ===== ロビー画面 ===== -->
+        <div class="screen active" id="screen-lobby">
+            <div class="lobby-section">
+                <div class="cat-section">
+                    <div class="cat-img-wrapper">
+                        <img src="cat.png" alt="ねこ"
+                            onerror="this.style.display='none'; this.parentElement.innerHTML='<span class=cat-emoji>🐱</span>';">
+                    </div>
+                </div>
+                <h2>にゃ〜！カスタムマッチを始めるにゃ！</h2>
+                <div class="lobby-buttons">
+                    <button class="btn-create" id="btn-create-room">🏠 部屋をつくる</button>
+                    <button class="btn-join" id="btn-show-join">🚪 部屋に入る</button>
+                </div>
+                <div class="join-input-group" id="join-group">
+                    <input type="text" class="join-input" id="join-room-id" placeholder="ルームIDを入力（例: ABC123）">
+                    <button class="btn-join-go" id="btn-join-room">参加する</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== 部屋画面 ===== -->
+        <div class="screen" id="screen-room">
+            <div class="room-info">
+                <div class="room-id-label">ルームID</div>
+                <div class="room-id-value" id="room-id-display"></div>
+                <div class="room-url-area">
+                    <div class="room-url-text" id="room-url-text"></div>
+                    <button class="btn-copy" id="btn-copy-url">📋 コピー</button>
+                </div>
+            </div>
+
+            <!-- 自分の入力カード -->
+            <div class="my-card" id="my-card">
+                <div class="my-card-title">✍️ あなたの情報を入力してね！</div>
+                <div class="input-group">
+                    <label class="name">👤 名前</label>
+                    <input type="text" id="my-name" placeholder="あなたの名前">
+                </div>
+                <div class="input-group">
+                    <label class="tank"><span class="role-icon tank-icon"></span>タンク（1番使ってるキャラ）</label>
+                    <input type="text" id="my-tank" placeholder="例: ラインハルト">
+                </div>
+                <div class="input-group">
+                    <label class="dps"><span class="role-icon dps-icon"></span>DPS（1番使ってるキャラ）</label>
+                    <input type="text" id="my-dps" placeholder="例: ゲンジ">
+                </div>
+                <div class="input-group">
+                    <label class="support"><span class="role-icon support-icon"></span>サポート（1番使ってるキャラ）</label>
+                    <input type="text" id="my-support" placeholder="例: アナ">
+                </div>
+                <button class="btn-save" id="btn-save-my">✅ 登録する！</button>
+            </div>
+
+            <!-- 参加者リスト -->
+            <div class="progress-section">
+                <div class="progress-text">
+                    <span>参加者</span>
+                    <span id="progress-count">0 / 10</span>
+                </div>
+                <div class="progress-bar-wrapper">
+                    <div class="progress-bar-fill" id="progress-fill"></div>
+                </div>
+            </div>
+
+            <div class="member-list" id="member-list"></div>
+
+            <button class="btn-primary" id="btn-start-roulette" disabled>
+                🎰 全員揃った！ルーレット開始！
+            </button>
+        </div>
+
+        <!-- ===== ルーレット画面 ===== -->
+        <div class="screen roulette-screen" id="screen-roulette">
+            <div class="cat-section">
+                <div class="cat-img-wrapper">
+                    <img src="cat.png" alt="ねこ"
+                        onerror="this.style.display='none'; this.parentElement.innerHTML='<span class=cat-emoji>🐱</span>';">
+                </div>
+            </div>
+
+            <div class="speech-bubble" id="speech-bubble">
+                <span class="shimmer-text">にゃ〜！ルーレット回すよ〜！</span>
+            </div>
+
+            <div class="slot-machine" id="slot-machine">
+                <div>
+                    <div class="slot-column-label">チーム</div>
+                    <div class="slot-column">
+                        <div class="slot-reel" id="reel-team"></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="slot-column-label">ロール</div>
+                    <div class="slot-column">
+                        <div class="slot-reel" id="reel-role"></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="slot-column-label">プレイヤー</div>
+                    <div class="slot-column">
+                        <div class="slot-reel" id="reel-player"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="announce-card" id="announce-card">
+                <div class="announce-team" id="announce-team"></div>
+                <div class="announce-name" id="announce-name"></div>
+                <div class="announce-role" id="announce-role"></div>
+                <div class="announce-hero" id="announce-hero"></div>
+            </div>
+            <div class="announce-counter" id="announce-counter"></div>
+
+            <div class="waiting-msg" id="waiting-roulette" style="display:none;">
+                <div class="spinner"></div>
+                <div>ホストがルーレットを回すのを待ってるにゃ…🐱</div>
+            </div>
+        </div>
+
+        <!-- ===== 結果画面 ===== -->
+        <div class="screen result-screen" id="screen-result">
+            <div class="result-header">
+                <h2>⚔️ チーム編成 ⚔️</h2>
+            </div>
+            <div class="teams-container">
+                <div class="team-block team-a" id="team-a-block">
+                    <div class="team-header">🟠 TEAM A</div>
+                </div>
+                <div class="vs-divider">VS</div>
+                <div class="team-block team-b" id="team-b-block">
+                    <div class="team-header">🔵 TEAM B</div>
+                </div>
+            </div>
+            <button class="btn-secondary" id="btn-retry" style="margin-top:30px;">🔄 もう一回振り分ける</button>
+            <button class="btn-secondary" id="btn-back-lobby">🏠 ロビーに戻る</button>
+        </div>
+    </div>
+
+    <!-- トースト通知 -->
+    <div class="toast" id="toast"></div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+
+    <script>
+        // ===== Firebase初期化 =====
+        const firebaseConfig = {
+            apiKey: "AIzaSyBZZtSwqHMatqUh3h0dEv22RYtMxd2zAnM",
+            authDomain: "ow-custom-roulette.firebaseapp.com",
+            databaseURL: "https://ow-custom-roulette-default-rtdb.firebaseio.com",
+            projectId: "ow-custom-roulette",
+            storageBucket: "ow-custom-roulette.firebasestorage.app",
+            messagingSenderId: "503990923092",
+            appId: "1:503990923092:web:801163495a2a23f41922c1"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // ===== 状態管理 =====
+        let currentRoomId = null;
+        let myPlayerId = null;
+        let isHost = false;
+        let roomRef = null;
+        let unsubscribers = [];
+
+        // ===== 初期化 =====
+        function init() {
+            createParticles();
+            setupLobbyEvents();
+
+            // URLからルームIDを確認
+            const params = new URLSearchParams(window.location.search);
+            const roomFromUrl = params.get('room');
+            if (roomFromUrl) {
+                joinRoom(roomFromUrl.toUpperCase());
+            }
+        }
+
+        // ===== パーティクル =====
+        function createParticles() {
+            const c = document.getElementById('particles');
+            for (let i = 0; i < 30; i++) {
+                const s = document.createElement('span');
+                s.style.left = Math.random() * 100 + '%';
+                s.style.animationDelay = Math.random() * 6 + 's';
+                s.style.animationDuration = (4 + Math.random() * 4) + 's';
+                if (Math.random() > 0.5) s.style.background = 'var(--accent-blue)';
+                c.appendChild(s);
+            }
+        }
+
+        // ===== ロビーイベント =====
+        function setupLobbyEvents() {
+            document.getElementById('btn-create-room').addEventListener('click', createRoom);
+            document.getElementById('btn-show-join').addEventListener('click', () => {
+                document.getElementById('join-group').classList.toggle('show');
+            });
+            document.getElementById('btn-join-room').addEventListener('click', () => {
+                const id = document.getElementById('join-room-id').value.trim().toUpperCase();
+                if (id) joinRoom(id);
+            });
+            document.getElementById('btn-copy-url').addEventListener('click', copyRoomUrl);
+            document.getElementById('btn-save-my').addEventListener('click', saveMyData);
+            document.getElementById('btn-start-roulette').addEventListener('click', startRouletteAsHost);
+            document.getElementById('btn-retry').addEventListener('click', retryRoulette);
+            document.getElementById('btn-back-lobby').addEventListener('click', backToLobby);
+        }
+
+        // ===== ルームID生成 =====
+        function generateRoomId() {
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+            let id = '';
+            for (let i = 0; i < 5; i++) {
+                id += chars[Math.floor(Math.random() * chars.length)];
+            }
+            return id;
+        }
+
+        // ===== プレイヤーID生成（ブラウザ固有） =====
+        function getPlayerId() {
+            let id = sessionStorage.getItem('ow-player-id');
+            if (!id) {
+                id = 'p_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+                sessionStorage.setItem('ow-player-id', id);
+            }
+            return id;
+        }
+
+        // ===== 部屋を作る =====
+        async function createRoom() {
+            const roomId = generateRoomId();
+            myPlayerId = getPlayerId();
+            isHost = true;
+
+            roomRef = db.ref('rooms/' + roomId);
+            await roomRef.set({
+                id: roomId,
+                host: myPlayerId,
+                createdAt: firebase.database.ServerValue.TIMESTAMP,
+                status: 'waiting', // waiting / roulette / result
+                players: {},
+                result: null
+            });
+
+            currentRoomId = roomId;
+            showRoomScreen();
+            listenToRoom();
+            showToast('部屋を作ったにゃ！URLを友達に共有してね！🐱');
+        }
+
+        // ===== 部屋に入る =====
+        async function joinRoom(roomId) {
+            myPlayerId = getPlayerId();
+
+            roomRef = db.ref('rooms/' + roomId);
+            const snapshot = await roomRef.once('value');
+
+            if (!snapshot.exists()) {
+                showToast('⚠️ その部屋は存在しないにゃ…');
+                return;
+            }
+
+            const data = snapshot.val();
+
+            // ホストかどうか確認
+            isHost = (data.host === myPlayerId);
+
+            // 参加者数チェック
+            const playerCount = data.players ? Object.keys(data.players).length : 0;
+            const alreadyIn = data.players && data.players[myPlayerId];
+
+            if (!alreadyIn && playerCount >= 10) {
+                showToast('⚠️ 部屋が満員にゃ（10/10）');
+                return;
+            }
+
+            currentRoomId = roomId;
+
+            // もう結果が出ている場合
+            if (data.status === 'result' && data.result) {
+                showScreen('screen-result');
+                renderResults(data.result.teamA, data.result.teamB);
+                listenToRoom();
+                return;
+            }
+
+            showRoomScreen();
+            listenToRoom();
+
+            // 既にデータがあれば復元
+            if (alreadyIn) {
+                const myData = data.players[myPlayerId];
+                document.getElementById('my-name').value = myData.name || '';
+                document.getElementById('my-tank').value = myData.tank || '';
+                document.getElementById('my-dps').value = myData.dps || '';
+                document.getElementById('my-support').value = myData.support || '';
+                lockMyInputs();
+                showToast('おかえりにゃ！🐱');
+            }
+        }
+
+        // ===== 部屋画面を表示 =====
+        function showRoomScreen() {
+            showScreen('screen-room');
+            document.getElementById('room-id-display').textContent = currentRoomId;
+            const url = window.location.origin + window.location.pathname + '?room=' + currentRoomId;
+            document.getElementById('room-url-text').textContent = url;
+        }
+
+        // ===== URLコピー =====
+        async function copyRoomUrl() {
+            const url = window.location.origin + window.location.pathname + '?room=' + currentRoomId;
+            try {
+                await navigator.clipboard.writeText(url);
+                const btn = document.getElementById('btn-copy-url');
+                btn.classList.add('copied');
+                btn.textContent = '✅ コピーした！';
+                setTimeout(() => {
+                    btn.classList.remove('copied');
+                    btn.textContent = '📋 コピー';
+                }, 2000);
+            } catch {
+                showToast('URLをコピーしてね: ' + url);
+            }
+        }
+
+        // ===== 自分のデータを保存 =====
+        async function saveMyData() {
+            const name = document.getElementById('my-name').value.trim();
+            const tank = document.getElementById('my-tank').value.trim();
+            const dps = document.getElementById('my-dps').value.trim();
+            const support = document.getElementById('my-support').value.trim();
+
+            if (!name || !tank || !dps || !support) {
+                showToast('⚠️ 全部入力してにゃ！');
+                return;
+            }
+
+            // 10人チェック
+            const snap = await roomRef.child('players').once('value');
+            const existing = snap.val() || {};
+            const keys = Object.keys(existing);
+            if (!existing[myPlayerId] && keys.length >= 10) {
+                showToast('⚠️ もう10人集まっちゃったにゃ！');
+                return;
+            }
+
+            await roomRef.child('players/' + myPlayerId).set({
+                name, tank, dps, support,
+                joinedAt: firebase.database.ServerValue.TIMESTAMP
+            });
+
+            lockMyInputs();
+            showToast('登録したにゃ！🎉');
+        }
+
+        // ===== 入力をロック =====
+        function lockMyInputs() {
+            document.querySelectorAll('#my-card input').forEach(i => i.disabled = true);
+            const btn = document.getElementById('btn-save-my');
+            btn.disabled = true;
+            btn.classList.add('saved');
+            btn.textContent = '✅ 登録済み！';
+        }
+
+        // ===== リアルタイムリスナー =====
+        function listenToRoom() {
+            // クリーンアップ
+            unsubscribers.forEach(fn => fn());
+            unsubscribers = [];
+
+            // プレイヤーリスト監視
+            const playersRef = roomRef.child('players');
+            const onPlayers = playersRef.on('value', (snap) => {
+                const players = snap.val() || {};
+                updateMemberList(players);
+                updateProgress(Object.keys(players).length);
+            });
+            unsubscribers.push(() => playersRef.off('value', onPlayers));
+
+            // ステータス監視
+            const statusRef = roomRef.child('status');
+            const onStatus = statusRef.on('value', async (snap) => {
+                const status = snap.val();
+                if (status === 'roulette' && !isHost) {
+                    // ゲストはルーレット画面に遷移して待機
+                    showScreen('screen-roulette');
+                    document.getElementById('waiting-roulette').style.display = 'block';
+                    document.getElementById('slot-machine').style.display = 'none';
+                }
+            });
+            unsubscribers.push(() => statusRef.off('value', onStatus));
+
+            // 結果監視
+            const resultRef = roomRef.child('result');
+            const onResult = resultRef.on('value', (snap) => {
+                const result = snap.val();
+                if (result && result.teamA) {
+                    // 結果が書き込まれたら表示
+                    if (!isHost) {
+                        showScreen('screen-roulette');
+                        document.getElementById('waiting-roulette').style.display = 'none';
+                        document.getElementById('slot-machine').style.display = 'flex';
+                        runRouletteAnimation(result.teamA, result.teamB);
+                    }
+                }
+            });
+            unsubscribers.push(() => resultRef.off('value', onResult));
+        }
+
+        // ===== メンバーリスト更新 =====
+        function updateMemberList(players) {
+            const list = document.getElementById('member-list');
+            list.innerHTML = '';
+
+            const entries = Object.entries(players);
+            // 既存メンバー
+            entries.forEach(([id, data]) => {
+                const chip = document.createElement('div');
+                chip.className = 'member-chip filled';
+                const isMe = id === myPlayerId;
+                chip.innerHTML = `
+      <div class="member-dot online"></div>
+      <div>
+        <div class="member-chip-name">${data.name}${isMe ? '（あなた）' : ''}</div>
+        <div class="member-chip-status">入力済み ✅</div>
+      </div>
+    `;
+                list.appendChild(chip);
+            });
+
+            // 空きスロット
+            for (let i = entries.length; i < 10; i++) {
+                const chip = document.createElement('div');
+                chip.className = 'member-chip empty';
+                chip.innerHTML = `
+      <div class="member-dot offline"></div>
+      <div>
+        <div class="member-chip-name" style="color:var(--text-secondary)">待機中…</div>
+      </div>
+    `;
+                list.appendChild(chip);
+            }
+        }
+
+        // ===== 進捗バー更新 =====
+        function updateProgress(count) {
+            document.getElementById('progress-count').textContent = `${count} / 10`;
+            document.getElementById('progress-fill').style.width = `${(count / 10) * 100}%`;
+            document.getElementById('btn-start-roulette').disabled = count < 10;
+
+            if (!isHost) {
+                document.getElementById('btn-start-roulette').style.display = 'none';
+            } else {
+                document.getElementById('btn-start-roulette').style.display = 'block';
+            }
+        }
+
+        // ===== ホストがルーレット開始 =====
+        async function startRouletteAsHost() {
+            // プレイヤーデータ取得
+            const snap = await roomRef.child('players').once('value');
+            const playersData = snap.val();
+            if (!playersData || Object.keys(playersData).length < 10) {
+                showToast('⚠️ まだ10人集まってないにゃ！');
+                return;
+            }
+
+            const playersList = Object.values(playersData);
+
+            // チーム振り分け
+            const { teamA, teamB } = assignTeams(playersList);
+
+            // ステータス更新（みんなの画面が切り替わる）
+            await roomRef.update({
+                status: 'roulette',
+            });
+
+            // 少し待ってから結果を書き込む（ゲストが画面遷移する時間）
+            showScreen('screen-roulette');
+            document.getElementById('waiting-roulette').style.display = 'none';
+            document.getElementById('slot-machine').style.display = 'flex';
+
+            await wait(1000);
+
+            // 結果をDBに書き込み（ゲストも受信してアニメーション開始）
+            await roomRef.child('result').set({ teamA, teamB });
+
+            // ホスト自身もアニメーション実行
+            await runRouletteAnimation(teamA, teamB);
+        }
+
+        // ===== チーム振り分けロジック =====
+        function shuffle(arr) {
+            const a = [...arr];
+            for (let i = a.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [a[i], a[j]] = [a[j], a[i]];
+            }
+            return a;
+        }
+
+        function assignTeams(playersList) {
+            const shuffled = shuffle(playersList);
+            const teamAPlayers = shuffled.slice(0, 5);
+            const teamBPlayers = shuffled.slice(5, 10);
+            const roles = ['tank', 'dps', 'dps', 'support', 'support'];
+
+            function assignRoles(team) {
+                const shuffledRoles = shuffle(roles);
+                return team.map((player, idx) => {
+                    const role = shuffledRoles[idx];
+                    let hero;
+                    if (role === 'tank') hero = player.tank;
+                    else if (role === 'dps') hero = player.dps;
+                    else hero = player.support;
+                    return { name: player.name, tank: player.tank, dps: player.dps, support: player.support, role, hero };
+                });
+            }
+
+            const teamA = assignRoles(teamAPlayers);
+            const teamB = assignRoles(teamBPlayers);
+
+            const roleOrder = { tank: 0, dps: 1, support: 2 };
+            teamA.sort((a, b) => roleOrder[a.role] - roleOrder[b.role]);
+            teamB.sort((a, b) => roleOrder[a.role] - roleOrder[b.role]);
+
+            return { teamA, teamB };
+        }
+
+        // ===== ルーレットアニメーション =====
+        async function runRouletteAnimation(teamA, teamB) {
+            const bubble = document.getElementById('speech-bubble');
+            const announceCard = document.getElementById('announce-card');
+            const counter = document.getElementById('announce-counter');
+
+            announceCard.classList.remove('show');
+            bubble.innerHTML = '<span class="shimmer-text">にゃ〜！ルーレット回すよ〜！</span>';
+
+            prepareSlotReels(teamA, teamB);
+            await wait(1500);
+
+            const allMembers = [];
+            teamA.forEach(m => allMembers.push({ ...m, team: 'A' }));
+            teamB.forEach(m => allMembers.push({ ...m, team: 'B' }));
+            const announceOrder = shuffle(allMembers);
+
+            for (let i = 0; i < announceOrder.length; i++) {
+                const member = announceOrder[i];
+                counter.textContent = `${i + 1} / ${announceOrder.length}`;
+
+                bubble.innerHTML = '<span class="shimmer-text">にゃにゃにゃ… 🎰</span>';
+                announceCard.classList.remove('show');
+                await spinSlots(member);
+
+                const roleName = getRoleDisplayName(member.role);
+                const roleColor = getRoleColor(member.role);
+                const teamName = member.team === 'A' ? 'チームA 🟠' : 'チームB 🔵';
+                const teamClass = member.team === 'A' ? 'team-a-card' : 'team-b-card';
+
+                bubble.innerHTML = `
+      <span>${member.name}さんは<br>
+      <b style="color:${member.team === 'A' ? 'var(--accent-orange)' : 'var(--accent-blue)'}">${teamName}</b>の
+      <b style="color:${roleColor}">${roleName}</b>！<br>
+      使うキャラは <b style="color:${roleColor}">${member.hero}</b> だにゃ！🐱</span>
+    `;
+
+                announceCard.className = 'announce-card show ' + teamClass;
+                document.getElementById('announce-team').textContent = teamName;
+                document.getElementById('announce-team').style.color = member.team === 'A' ? 'var(--accent-orange)' : 'var(--accent-blue)';
+                document.getElementById('announce-name').textContent = member.name;
+                document.getElementById('announce-role').textContent = roleName;
+                document.getElementById('announce-role').style.color = roleColor;
+                document.getElementById('announce-hero').textContent = `🎯 ${member.hero}`;
+                document.getElementById('announce-hero').style.color = roleColor;
+
+                await wait(2800);
+            }
+
+            bubble.innerHTML = '<span>全員決まったにゃ！🎉 結果を表示するにゃ〜！</span>';
+            await wait(2000);
+
+            showScreen('screen-result');
+            renderResults(teamA, teamB);
+            await roomRef.update({ status: 'result' });
+        }
+
+        // ===== スロットリール =====
+        function prepareSlotReels(teamA, teamB) {
+            const teams = ['A', 'A', 'B', 'B', 'A', 'B'];
+            const roleTexts = ['タンク', 'DPS', 'DPS', 'サポート', 'サポート', 'タンク'];
+            const allNames = [...teamA, ...teamB].map(p => p.name);
+
+            ['reel-team', 'reel-role', 'reel-player'].forEach(id => {
+                const reel = document.getElementById(id);
+                reel.innerHTML = '';
+                let items;
+                if (id === 'reel-team') items = teams;
+                else if (id === 'reel-role') items = roleTexts;
+                else items = allNames;
+
+                for (let r = 0; r < 5; r++) {
+                    items.forEach(text => {
+                        const div = document.createElement('div');
+                        div.className = 'slot-item';
+                        div.textContent = text;
+                        reel.appendChild(div);
+                    });
+                }
+            });
+        }
+
+        async function spinSlots(member) {
+            const reels = [
+                { id: 'reel-team', finalText: member.team === 'A' ? 'TEAM A' : 'TEAM B' },
+                { id: 'reel-role', finalText: getRoleDisplayName(member.role) },
+                { id: 'reel-player', finalText: member.name },
+            ];
+
+            reels.forEach(r => {
+                const el = document.getElementById(r.id);
+                let pos = 0;
+                const speed = 15 + Math.random() * 10;
+                r._interval = setInterval(() => {
+                    pos -= speed;
+                    if (pos < -el.scrollHeight / 2) pos = 0;
+                    el.style.top = pos + 'px';
+                    el.style.transition = 'none';
+                }, 30);
+            });
+
+            await wait(800);
+
+            for (let i = 0; i < reels.length; i++) {
+                clearInterval(reels[i]._interval);
+                const el = document.getElementById(reels[i].id);
+                el.innerHTML = `<div class="slot-item" style="font-weight:900; color:${i === 0 ? (member.team === 'A' ? 'var(--accent-orange)' : 'var(--accent-blue)') : getRoleColor(member.role)
+                    }">${reels[i].finalText}</div>`;
+                el.style.top = '0px';
+                el.style.transition = 'top 0.3s ease';
+                await wait(400);
+            }
+
+            await wait(300);
+        }
+
+        // ===== 結果表示 =====
+        function renderResults(teamA, teamB) {
+            const blockA = document.getElementById('team-a-block');
+            const blockB = document.getElementById('team-b-block');
+            blockA.innerHTML = '<div class="team-header">🟠 TEAM A</div>';
+            blockB.innerHTML = '<div class="team-header">🔵 TEAM B</div>';
+
+            function addMembers(block, members) {
+                members.forEach(m => {
+                    const div = document.createElement('div');
+                    div.className = 'team-member';
+                    const roleName = getRoleDisplayName(m.role);
+                    const badgeClass = m.role === 'tank' ? 'badge-tank' : m.role === 'dps' ? 'badge-dps' : 'badge-support';
+                    div.innerHTML = `
+        <div class="member-role-badge ${badgeClass}">${roleName}</div>
+        <div class="member-info">
+          <div class="member-name">${m.name}</div>
+          <div class="member-hero">🎯 ${m.hero}</div>
+        </div>
+      `;
+                    block.appendChild(div);
+                });
+            }
+
+            addMembers(blockA, teamA);
+            addMembers(blockB, teamB);
+
+            // ホストだけが再振り分け可能
+            document.getElementById('btn-retry').style.display = isHost ? 'block' : 'none';
+        }
+
+        // ===== もう一回振り分け =====
+        async function retryRoulette() {
+            const snap = await roomRef.child('players').once('value');
+            const playersData = snap.val();
+            if (!playersData) return;
+
+            const playersList = Object.values(playersData);
+            const { teamA, teamB } = assignTeams(playersList);
+
+            await roomRef.update({ status: 'roulette' });
+            await roomRef.child('result').remove();
+
+            showScreen('screen-roulette');
+            document.getElementById('waiting-roulette').style.display = 'none';
+            document.getElementById('slot-machine').style.display = 'flex';
+
+            await wait(500);
+            await roomRef.child('result').set({ teamA, teamB });
+            await runRouletteAnimation(teamA, teamB);
+        }
+
+        // ===== ロビーに戻る =====
+        function backToLobby() {
+            unsubscribers.forEach(fn => fn());
+            unsubscribers = [];
+            currentRoomId = null;
+            roomRef = null;
+            isHost = false;
+
+            // URLクリーン
+            window.history.replaceState({}, '', window.location.pathname);
+
+            // 入力リセット
+            document.querySelectorAll('#my-card input').forEach(i => { i.value = ''; i.disabled = false; });
+            const btn = document.getElementById('btn-save-my');
+            btn.disabled = false;
+            btn.classList.remove('saved');
+            btn.textContent = '✅ 登録する！';
+
+            showScreen('screen-lobby');
+        }
+
+        // ===== ユーティリティ =====
+        function showScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+
+        function getRoleDisplayName(role) {
+            return { tank: 'タンク', dps: 'DPS', support: 'サポート' }[role] || role;
+        }
+
+        function getRoleColor(role) {
+            return { tank: 'var(--tank-color)', dps: 'var(--dps-color)', support: 'var(--support-color)' }[role] || 'inherit';
+        }
+
+        function wait(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 3000);
+        }
+
+        // ===== 起動 =====
+        init();
+    </script>
+
+</body>
+
+</html>
