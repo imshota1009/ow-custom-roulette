@@ -1144,22 +1144,13 @@
     <!-- トースト通知 -->
     <div class="toast" id="toast"></div>
 
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+    <!-- Firebase SDK (Firebase Hosting自動設定) -->
+    <script src="/__/firebase/10.14.1/firebase-app-compat.js"></script>
+    <script src="/__/firebase/10.14.1/firebase-database-compat.js"></script>
+    <script src="/__/firebase/init.js"></script>
 
     <script>
-        // ===== Firebase初期化 =====
-        const firebaseConfig = {
-            apiKey: "AIzaSyBZZtSwqHMatqUh3h0dEv22RYtMxd2zAnM",
-            authDomain: "ow-custom-roulette.firebaseapp.com",
-            databaseURL: "https://ow-custom-roulette-default-rtdb.firebaseio.com",
-            projectId: "ow-custom-roulette",
-            storageBucket: "ow-custom-roulette.firebasestorage.app",
-            messagingSenderId: "503990923092",
-            appId: "1:503990923092:web:801163495a2a23f41922c1"
-        };
-        firebase.initializeApp(firebaseConfig);
+        // ===== Firebase初期化（自動設定から読み込み） =====
         const db = firebase.database();
 
         // ===== 状態管理 =====
