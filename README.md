@@ -48,10 +48,10 @@
 ## 📸 スクリーンショット
 
 ### ロビー画面
-<img src="docs/lobby.png" alt="ロビー画面" width="600">
+<img src="images/lobby.png" alt="ロビー画面" width="600">
 
-### 部屋画面（キャラ入力）
-<img src="docs/room.png" alt="部屋画面" width="600">
+### メニュー画面
+<img src="images/menu.png" alt="メニュー画面" width="600">
 
 ---
 
