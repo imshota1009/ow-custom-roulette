@@ -3,7 +3,7 @@
 A web app that uses a roulette to decide teams and roles for Overwatch custom games (10 players)!
 
 🌐 **App URL**: [https://ow-custom-roulette.web.app/](https://ow-custom-roulette.web.app/)
-https://ow-custom-roulette.web.app/
+
 ---
 
 ## ✨ Features
