@@ -51,7 +51,7 @@
 <img src="images/lobby.png" alt="ロビー画面" width="600">
 
 ### 部屋画面（キャラ入力）
-<img src="images/room.png" alt="部屋画面" width="600">
+<img src="images/menu.png" alt="部屋画面" width="600">
 
 ---
 
