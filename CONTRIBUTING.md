@@ -1,67 +1,67 @@
-# 🤝 コントリビューティングガイド
+# 🤝 Contributing Guide
 
-OW カスタムルーレットへの貢献に興味を持っていただきありがとうございます！🐱
-
----
-
-## 📝 貢献の方法
-
-### 🐛 バグ報告
-1. [Issues](https://github.com/imshota1009/ow-custom-roulette/issues) ページを開く
-2. 「New Issue」をクリック
-3. バグの詳細（何が起きたか、期待される動作、再現手順）を記入
-
-### 💡 機能提案
-1. [Issues](https://github.com/imshota1009/ow-custom-roulette/issues) ページを開く
-2. 「New Issue」をクリック
-3. 追加したい機能の説明を記入
-
-### 🔧 コードの変更
-1. このリポジトリをフォーク
-2. 新しいブランチを作成: `git checkout -b feature/素敵な機能`
-3. 変更を加える
-4. コミット: `git commit -m '素敵な機能を追加'`
-5. プッシュ: `git push origin feature/素敵な機能`
-6. プルリクエストを作成
+Thank you for your interest in contributing to OW Custom Roulette! 🐱
 
 ---
 
-## 🏗️ 開発環境のセットアップ
+## 📝 How to Contribute
+
+### 🐛 Bug Reports
+1. Go to the [Issues](https://github.com/imshota1009/ow-custom-roulette/issues) page
+2. Click "New Issue"
+3. Describe the bug in detail (what happened, expected behavior, steps to reproduce)
+
+### 💡 Feature Requests
+1. Go to the [Issues](https://github.com/imshota1009/ow-custom-roulette/issues) page
+2. Click "New Issue"
+3. Describe the feature you'd like to add
+
+### 🔧 Code Changes
+1. Fork this repository
+2. Create a new branch: `git checkout -b feature/awesome-feature`
+3. Make your changes
+4. Commit: `git commit -m 'Add awesome feature'`
+5. Push: `git push origin feature/awesome-feature`
+6. Create a Pull Request
+
+---
+
+## 🏗️ Development Environment Setup
 
 ```bash
-# リポジトリをクローン
+# Clone the repository
 git clone https://github.com/imshota1009/ow-custom-roulette.git
 cd ow-custom-roulette
 
-# Firebase CLIをインストール（まだの場合）
+# Install Firebase CLI (if not already installed)
 npm install -g firebase-tools
 
-# Firebaseにログイン
+# Login to Firebase
 firebase login
 
-# ローカルサーバーを起動
+# Start local server
 firebase serve
 ```
 
-ブラウザで `http://localhost:5000` を開いて動作確認できます。
+Open `http://localhost:5000` in your browser to test.
 
 ---
 
-## 📋 コードスタイル
+## 📋 Code Style
 
-- インデントは **スペース2つ**
-- 変数名・関数名は **キャメルケース** (例: `createRoom`, `myPlayerId`)
-- コメントは **日本語OK**
-- CSSカスタムプロパティ（変数）を活用する
-
----
-
-## 🙏 行動規範
-
-- お互いに敬意を持って接しましょう
-- 建設的なフィードバックを心がけましょう
-- 楽しくコーディングしましょう！🎮
+- Indentation: **2 spaces**
+- Variable/function names: **camelCase** (e.g., `createRoom`, `myPlayerId`)
+- Comments in **English or Japanese** are both welcome
+- Use CSS custom properties (variables) when possible
 
 ---
 
-ご不明な点があれば、お気軽にIssueでお問い合わせください！
+## 🙏 Code of Conduct
+
+- Treat each other with respect
+- Provide constructive feedback
+- Have fun coding! 🎮
+
+---
+
+If you have any questions, feel free to open an Issue!

@@ -1,29 +1,29 @@
-# 📚 LEARN.md — このプロジェクトから学べること
+# 📚 LEARN.md — What You Can Learn from This Project
 
-このドキュメントでは、OW カスタムルーレットで使われている技術を解説します。
+This document explains the technologies used in OW Custom Roulette.
 
 ---
 
 ## 🔥 Firebase Realtime Database
 
-### これは何？
-Googleが提供する「リアルタイム データベース」です。誰かがデータを書き込むと、接続中の全員の画面に**一瞬で反映**されます。
+### What is it?
+A "real-time database" provided by Google. When someone writes data, it is **instantly reflected** on every connected user's screen.
 
-### このアプリでの使い方
-- **部屋の作成**: 部屋のデータ（ルームID、参加者リスト）をデータベースに保存
-- **リアルタイム同期**: 誰かが登録すると、全員の画面の参加者リストが自動更新
-- **結果の共有**: ルーレット結果をデータベースに書き込み → 全員の画面に反映
+### How it's used in this app
+- **Room creation**: Saves room data (room ID, player list) to the database
+- **Real-time sync**: When someone registers, everyone's player list updates automatically
+- **Sharing results**: Writes roulette results to the database → reflected on everyone's screen
 
-### コードの場所
-`public/index.html` の `<script>` タグ内:
+### Where in the code
+Inside the `<script>` tag of `public/index.html`:
 ```javascript
-// データベースに書き込み
+// Write to the database
 await roomRef.child('players/' + myPlayerId).set({ name, tank, dps, support });
 
-// リアルタイムで変更を監視
+// Watch for real-time changes
 playersRef.on('value', (snap) => {
   const players = snap.val();
-  updateMemberList(players); // 画面を更新
+  updateMemberList(players); // Update the UI
 });
 ```
 
@@ -31,80 +31,80 @@ playersRef.on('value', (snap) => {
 
 ## 🏠 Firebase Hosting
 
-### これは何？
-Webサイトを世界中に公開できるサービスです。HTMLファイルをアップロードするだけで、誰でもアクセスできるURLが発行されます。
+### What is it?
+A service that lets you publish websites to the world. Just upload your HTML files and you get a URL anyone can access.
 
-### 使い方
+### How to use
 ```bash
 firebase deploy --only hosting
 ```
-これだけで `https://ow-custom-roulette.web.app` に公開されます！
+That's all it takes to publish to `https://ow-custom-roulette.web.app`!
 
 ---
 
-## 🎰 ルーレット演出の仕組み
+## 🎰 How the Roulette Animation Works
 
-### スロットマシン
-CSSの `overflow: hidden` でスロットの「窓」を作り、JavaScriptで中身を高速スクロールさせています。
+### Slot Machine
+We use CSS `overflow: hidden` to create the slot "window", then use JavaScript to rapidly scroll the content inside.
 
 ```javascript
-// 回転（setIntervalで高速移動）
+// Spinning (rapid movement with setInterval)
 r._interval = setInterval(() => {
   pos -= speed;
   el.style.top = pos + 'px';
 }, 30);
 
-// 停止（最終結果を表示）
+// Stopping (display final result)
 clearInterval(r._interval);
 el.innerHTML = `<div>${finalText}</div>`;
 ```
 
 ---
 
-## 🔀 チーム振り分けアルゴリズム
+## 🔀 Team Assignment Algorithm
 
-### シャッフル — Fisher-Yates法
-配列をランダムに並べ替える有名なアルゴリズムです：
+### Shuffle — Fisher-Yates Method
+A well-known algorithm for randomly shuffling an array:
 
 ```javascript
 function shuffle(arr) {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]]; // 入れ替え
+    [a[i], a[j]] = [a[j], a[i]]; // Swap
   }
   return a;
 }
 ```
 
-### ロール割り当て
-1. 10人をシャッフルして5人ずつに分割
-2. ロール配列 `['tank', 'dps', 'dps', 'support', 'support']` もシャッフル
-3. 各プレイヤーにランダムなロールを割り当て
-4. 割り当てられたロールに対応する、そのプレイヤー自身が入力したキャラを適用
+### Role Assignment
+1. Shuffle all 10 players and split into two groups of 5
+2. Shuffle the role array `['tank', 'dps', 'dps', 'support', 'support']`
+3. Assign a random role to each player
+4. Apply the hero that each player entered for their assigned role
 
 ---
 
-## 🌐 URLパラメータでの部屋共有
+## 🌐 Room Sharing via URL Parameters
 
-URLの `?room=XXXXX` パラメータを使って部屋を共有しています：
+We use the `?room=XXXXX` URL parameter to share rooms:
 
 ```javascript
-// URLからルームIDを取得
+// Get room ID from URL
 const params = new URLSearchParams(window.location.search);
 const roomFromUrl = params.get('room');
 if (roomFromUrl) {
-  joinRoom(roomFromUrl); // 自動的に部屋に入る
+  joinRoom(roomFromUrl); // Automatically join the room
 }
 ```
 
-これにより、URLをクリックするだけで自動的に部屋に入れます。
+This allows players to automatically join a room just by clicking a URL.
 
 ---
 
-## 📱 レスポンシブデザイン
+## 📱 Responsive Design
 
-CSS の `@media` クエリを使って、スマホでもPCでも見やすいレイアウトにしています：
+We use CSS `@media` queries to ensure the layout looks great on both mobile and desktop:
 
 ```css
 @media (max-width: 600px) {

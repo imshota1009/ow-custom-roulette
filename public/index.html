@@ -936,6 +936,64 @@
             }
         }
 
+        /* ===== 言語スイッチ ===== */
+        .lang-switch {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 10;
+        }
+
+        .lang-switch .lang-label {
+            font-size: 1.1rem;
+            cursor: pointer;
+            opacity: 0.4;
+            transition: all 0.3s ease;
+            user-select: none;
+        }
+
+        .lang-switch .lang-label.active {
+            opacity: 1;
+            transform: scale(1.15);
+            filter: drop-shadow(0 0 6px rgba(249, 158, 26, 0.5));
+        }
+
+        .lang-toggle {
+            width: 48px;
+            height: 26px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 13px;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .lang-toggle:hover {
+            border-color: var(--accent-orange);
+            box-shadow: 0 0 10px rgba(249, 158, 26, 0.2);
+        }
+
+        .lang-toggle-knob {
+            width: 20px;
+            height: 20px;
+            background: linear-gradient(135deg, var(--accent-orange), #ff6b35);
+            border-radius: 50%;
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .lang-toggle.en .lang-toggle-knob {
+            left: 24px;
+            background: linear-gradient(135deg, var(--accent-blue), #2196F3);
+        }
+
         /* レスポンシブ */
         @media (max-width: 600px) {
             .app-header h1 {
@@ -963,6 +1021,11 @@
             .btn-join,
             .join-input {
                 width: 100%;
+            }
+
+            .lang-switch {
+                top: 10px;
+                right: 10px;
             }
         }
 
@@ -996,8 +1059,15 @@
     <div class="particles" id="particles"></div>
 
     <header class="app-header">
-        <h1>🎮 OW カスタムルーレット 🐱</h1>
-        <p>部屋を作ってみんなで参加！チームとロールをルーレットで決めよう！</p>
+        <div class="lang-switch">
+            <span class="lang-label active" id="lang-ja">🇯🇵</span>
+            <div class="lang-toggle" id="lang-toggle" onclick="toggleLanguage()">
+                <div class="lang-toggle-knob"></div>
+            </div>
+            <span class="lang-label" id="lang-en">🇺🇸</span>
+        </div>
+        <h1 id="app-title">🎮 OW カスタムルーレット 🐱</h1>
+        <p id="app-subtitle">部屋を作ってみんなで参加！チームとロールをルーレットで決めよう！</p>
     </header>
 
     <div class="container">
@@ -1011,7 +1081,7 @@
                             onerror="this.style.display='none'; this.parentElement.innerHTML='<span class=cat-emoji>🐱</span>';">
                     </div>
                 </div>
-                <h2>にゃ〜！カスタムマッチを始めるにゃ！</h2>
+                <h2 id="lobby-title">にゃ〜！カスタムマッチを始めるにゃ！</h2>
                 <div class="lobby-buttons">
                     <button class="btn-create" id="btn-create-room">🏠 部屋をつくる</button>
                     <button class="btn-join" id="btn-show-join">🚪 部屋に入る</button>
@@ -1026,31 +1096,32 @@
         <!-- ===== 部屋画面 ===== -->
         <div class="screen" id="screen-room">
             <div class="room-info">
-                <div class="room-id-label">ルームID</div>
+                <div class="room-id-label" id="room-id-label">ルームID</div>
                 <div class="room-id-value" id="room-id-display"></div>
                 <div class="room-url-area">
                     <div class="room-url-text" id="room-url-text"></div>
-                    <button class="btn-copy" id="btn-copy-url">📋 コピー</button>
+                    <button class="btn-copy" id="btn-copy-url"><span id="btn-copy-text">📋 コピー</span></button>
                 </div>
             </div>
 
             <!-- 自分の入力カード -->
             <div class="my-card" id="my-card">
-                <div class="my-card-title">✍️ あなたの情報を入力してね！</div>
+                <div class="my-card-title" id="my-card-title">✍️ あなたの情報を入力してね！</div>
                 <div class="input-group">
-                    <label class="name">👤 名前</label>
+                    <label class="name" id="label-name">👤 名前</label>
                     <input type="text" id="my-name" placeholder="あなたの名前">
                 </div>
                 <div class="input-group">
-                    <label class="tank"><span class="role-icon tank-icon"></span>タンク（1番使ってるキャラ）</label>
+                    <label class="tank" id="label-tank"><span class="role-icon tank-icon"></span>タンク（1番使ってるキャラ）</label>
                     <input type="text" id="my-tank" placeholder="例: ラインハルト">
                 </div>
                 <div class="input-group">
-                    <label class="dps"><span class="role-icon dps-icon"></span>DPS（1番使ってるキャラ）</label>
+                    <label class="dps" id="label-dps"><span class="role-icon dps-icon"></span>DPS（1番使ってるキャラ）</label>
                     <input type="text" id="my-dps" placeholder="例: ゲンジ">
                 </div>
                 <div class="input-group">
-                    <label class="support"><span class="role-icon support-icon"></span>サポート（1番使ってるキャラ）</label>
+                    <label class="support" id="label-support"><span
+                            class="role-icon support-icon"></span>サポート（1番使ってるキャラ）</label>
                     <input type="text" id="my-support" placeholder="例: アナ">
                 </div>
                 <button class="btn-save" id="btn-save-my">✅ 登録する！</button>
@@ -1059,7 +1130,7 @@
             <!-- 参加者リスト -->
             <div class="progress-section">
                 <div class="progress-text">
-                    <span>参加者</span>
+                    <span id="progress-label">参加者</span>
                     <span id="progress-count">0 / 10</span>
                 </div>
                 <div class="progress-bar-wrapper">
@@ -1070,7 +1141,7 @@
             <div class="member-list" id="member-list"></div>
 
             <button class="btn-primary" id="btn-start-roulette" disabled>
-                🎰 全員揃った！ルーレット開始！
+                <span id="btn-start-text">🎰 全員揃った！ルーレット開始！</span>
             </button>
         </div>
 
@@ -1089,19 +1160,19 @@
 
             <div class="slot-machine" id="slot-machine">
                 <div>
-                    <div class="slot-column-label">チーム</div>
+                    <div class="slot-column-label" id="slot-label-team">チーム</div>
                     <div class="slot-column">
                         <div class="slot-reel" id="reel-team"></div>
                     </div>
                 </div>
                 <div>
-                    <div class="slot-column-label">ロール</div>
+                    <div class="slot-column-label" id="slot-label-role">ロール</div>
                     <div class="slot-column">
                         <div class="slot-reel" id="reel-role"></div>
                     </div>
                 </div>
                 <div>
-                    <div class="slot-column-label">プレイヤー</div>
+                    <div class="slot-column-label" id="slot-label-player">プレイヤー</div>
                     <div class="slot-column">
                         <div class="slot-reel" id="reel-player"></div>
                     </div>
@@ -1118,14 +1189,14 @@
 
             <div class="waiting-msg" id="waiting-roulette" style="display:none;">
                 <div class="spinner"></div>
-                <div>ホストがルーレットを回すのを待ってるにゃ…🐱</div>
+                <div id="waiting-text">ホストがルーレットを回すのを待ってるにゃ…🐱</div>
             </div>
         </div>
 
         <!-- ===== 結果画面 ===== -->
         <div class="screen result-screen" id="screen-result">
             <div class="result-header">
-                <h2>⚔️ チーム編成 ⚔️</h2>
+                <h2 id="result-title">⚔️ チーム編成 ⚔️</h2>
             </div>
             <div class="teams-container">
                 <div class="team-block team-a" id="team-a-block">
@@ -1136,8 +1207,9 @@
                     <div class="team-header">🔵 TEAM B</div>
                 </div>
             </div>
-            <button class="btn-secondary" id="btn-retry" style="margin-top:30px;">🔄 もう一回振り分ける</button>
-            <button class="btn-secondary" id="btn-back-lobby">🏠 ロビーに戻る</button>
+            <button class="btn-secondary" id="btn-retry" style="margin-top:30px;"><span id="btn-retry-text">🔄
+                    もう一回振り分ける</span></button>
+            <button class="btn-secondary" id="btn-back-lobby"><span id="btn-back-text">🏠 ロビーに戻る</span></button>
         </div>
     </div>
 
@@ -1150,6 +1222,167 @@
     <script src="/__/firebase/init.js"></script>
 
     <script>
+        // ===== 多言語対応 =====
+        let currentLang = 'ja';
+
+        const i18n = {
+            ja: {
+                appTitle: '🎮 OW カスタムルーレット 🐱',
+                appSubtitle: '部屋を作ってみんなで参加！チームとロールをルーレットで決めよう！',
+                lobbyTitle: 'にゃ〜！カスタムマッチを始めるにゃ！',
+                btnCreate: '🏠 部屋をつくる',
+                btnShowJoin: '🚪 部屋に入る',
+                joinPlaceholder: 'ルームIDを入力（例: ABC123）',
+                btnJoinGo: '参加する',
+                roomIdLabel: 'ルームID',
+                btnCopy: '📋 コピー',
+                btnCopied: '✅ コピーした！',
+                myCardTitle: '✍️ あなたの情報を入力してね！',
+                labelName: '👤 名前',
+                labelTank: '<span class="role-icon tank-icon"></span>タンク（1番使ってるキャラ）',
+                labelDps: '<span class="role-icon dps-icon"></span>DPS（1番使ってるキャラ）',
+                labelSupport: '<span class="role-icon support-icon"></span>サポート（1番使ってるキャラ）',
+                placeholderName: 'あなたの名前',
+                placeholderTank: '例: ラインハルト',
+                placeholderDps: '例: ゲンジ',
+                placeholderSupport: '例: アナ',
+                btnSave: '✅ 登録する！',
+                btnSaved: '✅ 登録済み！',
+                progressLabel: '参加者',
+                btnStart: '🎰 全員揃った！ルーレット開始！',
+                slotTeam: 'チーム',
+                slotRole: 'ロール',
+                slotPlayer: 'プレイヤー',
+                waitingText: 'ホストがルーレットを回すのを待ってるにゃ…🐱',
+                resultTitle: '⚔️ チーム編成 ⚔️',
+                btnRetry: '🔄 もう一回振り分ける',
+                btnBack: '🏠 ロビーに戻る',
+                catStart: 'にゃ〜！ルーレット回すよ〜！',
+                catSpin: 'にゃにゃにゃ… 🎰',
+                catFinish: '全員決まったにゃ！🎉 結果を表示するにゃ〜！',
+                roleTank: 'タンク', roleDps: 'DPS', roleSupport: 'サポート',
+                toastCreated: '部屋を作ったにゃ！URLを友達に共有してね！🐱',
+                toastNotFound: '⚠️ その部屋は存在しないにゃ…',
+                toastFull: '⚠️ 部屋が満員にゃ（10/10）',
+                toastWelcomeBack: 'おかえりにゃ！🐱',
+                toastFillAll: '⚠️ 全部入力してにゃ！',
+                toastAlreadyFull: '⚠️ もう10人集まっちゃったにゃ！',
+                toastSaved: '登録したにゃ！🎉',
+                toastNotEnough: '⚠️ まだ10人集まってないにゃ！',
+                memberYou: '（あなた）',
+                memberFilled: '入力済み ✅',
+                memberWaiting: '待機中…',
+                teamA: 'チームA 🟠', teamB: 'チームB 🔵',
+            },
+            en: {
+                appTitle: '🎮 OW Custom Roulette 🐱',
+                appSubtitle: 'Create a room and join with friends! Let the roulette decide teams and roles!',
+                lobbyTitle: 'Meow~! Let\'s start a custom match!',
+                btnCreate: '🏠 Create Room',
+                btnShowJoin: '🚪 Join Room',
+                joinPlaceholder: 'Enter Room ID (e.g. ABC123)',
+                btnJoinGo: 'Join',
+                roomIdLabel: 'Room ID',
+                btnCopy: '📋 Copy',
+                btnCopied: '✅ Copied!',
+                myCardTitle: '✍️ Enter your info!',
+                labelName: '👤 Name',
+                labelTank: '<span class="role-icon tank-icon"></span>Tank (your main)',
+                labelDps: '<span class="role-icon dps-icon"></span>DPS (your main)',
+                labelSupport: '<span class="role-icon support-icon"></span>Support (your main)',
+                placeholderName: 'Your name',
+                placeholderTank: 'e.g. Reinhardt',
+                placeholderDps: 'e.g. Genji',
+                placeholderSupport: 'e.g. Ana',
+                btnSave: '✅ Register!',
+                btnSaved: '✅ Registered!',
+                progressLabel: 'Players',
+                btnStart: '🎰 All set! Start Roulette!',
+                slotTeam: 'Team',
+                slotRole: 'Role',
+                slotPlayer: 'Player',
+                waitingText: 'Waiting for the host to spin the roulette… 🐱',
+                resultTitle: '⚔️ Team Lineup ⚔️',
+                btnRetry: '🔄 Shuffle Again',
+                btnBack: '🏠 Back to Lobby',
+                catStart: 'Meow~! Let\'s spin the roulette~!',
+                catSpin: 'Spinning… 🎰',
+                catFinish: 'All done! 🎉 Here are the results~!',
+                roleTank: 'Tank', roleDps: 'DPS', roleSupport: 'Support',
+                toastCreated: 'Room created! Share the URL with your friends! 🐱',
+                toastNotFound: '⚠️ That room doesn\'t exist…',
+                toastFull: '⚠️ Room is full (10/10)',
+                toastWelcomeBack: 'Welcome back! 🐱',
+                toastFillAll: '⚠️ Please fill in all fields!',
+                toastAlreadyFull: '⚠️ Already 10 players!',
+                toastSaved: 'Registered! 🎉',
+                toastNotEnough: '⚠️ Not enough players yet!',
+                memberYou: ' (you)',
+                memberFilled: 'Ready ✅',
+                memberWaiting: 'Waiting…',
+                teamA: 'Team A 🟠', teamB: 'Team B 🔵',
+            }
+        };
+
+        function t(key) { return i18n[currentLang][key]; }
+
+        function toggleLanguage() {
+            currentLang = currentLang === 'ja' ? 'en' : 'ja';
+            const toggle = document.getElementById('lang-toggle');
+            const labelJa = document.getElementById('lang-ja');
+            const labelEn = document.getElementById('lang-en');
+            if (currentLang === 'en') {
+                toggle.classList.add('en');
+                labelJa.classList.remove('active');
+                labelEn.classList.add('active');
+            } else {
+                toggle.classList.remove('en');
+                labelJa.classList.add('active');
+                labelEn.classList.remove('active');
+            }
+            applyLanguage();
+        }
+
+        function applyLanguage() {
+            document.getElementById('app-title').textContent = t('appTitle');
+            document.getElementById('app-subtitle').textContent = t('appSubtitle');
+            document.getElementById('lobby-title').textContent = t('lobbyTitle');
+            document.getElementById('btn-create-room').textContent = t('btnCreate');
+            document.getElementById('btn-show-join').textContent = t('btnShowJoin');
+            document.getElementById('join-room-id').placeholder = t('joinPlaceholder');
+            document.getElementById('btn-join-room').textContent = t('btnJoinGo');
+            const ridl = document.getElementById('room-id-label');
+            if (ridl) ridl.textContent = t('roomIdLabel');
+            const bct = document.getElementById('btn-copy-text');
+            if (bct && !document.getElementById('btn-copy-url').classList.contains('copied')) bct.textContent = t('btnCopy');
+            document.getElementById('my-card-title').textContent = t('myCardTitle');
+            document.getElementById('label-name').innerHTML = t('labelName');
+            document.getElementById('label-tank').innerHTML = t('labelTank');
+            document.getElementById('label-dps').innerHTML = t('labelDps');
+            document.getElementById('label-support').innerHTML = t('labelSupport');
+            document.getElementById('my-name').placeholder = t('placeholderName');
+            document.getElementById('my-tank').placeholder = t('placeholderTank');
+            document.getElementById('my-dps').placeholder = t('placeholderDps');
+            document.getElementById('my-support').placeholder = t('placeholderSupport');
+            const saveBtn = document.getElementById('btn-save-my');
+            if (saveBtn.classList.contains('saved')) saveBtn.textContent = t('btnSaved');
+            else saveBtn.textContent = t('btnSave');
+            document.getElementById('progress-label').textContent = t('progressLabel');
+            document.getElementById('btn-start-text').textContent = t('btnStart');
+            const slt = document.getElementById('slot-label-team');
+            if (slt) slt.textContent = t('slotTeam');
+            const slr = document.getElementById('slot-label-role');
+            if (slr) slr.textContent = t('slotRole');
+            const slp = document.getElementById('slot-label-player');
+            if (slp) slp.textContent = t('slotPlayer');
+            const wt = document.getElementById('waiting-text');
+            if (wt) wt.textContent = t('waitingText');
+            const rt = document.getElementById('result-title');
+            if (rt) rt.textContent = t('resultTitle');
+            document.getElementById('btn-retry-text').textContent = t('btnRetry');
+            document.getElementById('btn-back-text').textContent = t('btnBack');
+        }
+
         // ===== Firebase初期化（自動設定から読み込み） =====
         const db = firebase.database();
 
@@ -1242,7 +1475,7 @@
             currentRoomId = roomId;
             showRoomScreen();
             listenToRoom();
-            showToast('部屋を作ったにゃ！URLを友達に共有してね！🐱');
+            showToast(t('toastCreated'));
         }
 
         // ===== 部屋に入る =====
@@ -1253,7 +1486,7 @@
             const snapshot = await roomRef.once('value');
 
             if (!snapshot.exists()) {
-                showToast('⚠️ その部屋は存在しないにゃ…');
+                showToast(t('toastNotFound'));
                 return;
             }
 
@@ -1267,7 +1500,7 @@
             const alreadyIn = data.players && data.players[myPlayerId];
 
             if (!alreadyIn && playerCount >= 10) {
-                showToast('⚠️ 部屋が満員にゃ（10/10）');
+                showToast(t('toastFull'));
                 return;
             }
 
@@ -1292,7 +1525,7 @@
                 document.getElementById('my-dps').value = myData.dps || '';
                 document.getElementById('my-support').value = myData.support || '';
                 lockMyInputs();
-                showToast('おかえりにゃ！🐱');
+                showToast(t('toastWelcomeBack'));
             }
         }
 
@@ -1311,10 +1544,10 @@
                 await navigator.clipboard.writeText(url);
                 const btn = document.getElementById('btn-copy-url');
                 btn.classList.add('copied');
-                btn.textContent = '✅ コピーした！';
+                btn.innerHTML = '<span id="btn-copy-text">' + t('btnCopied') + '</span>';
                 setTimeout(() => {
                     btn.classList.remove('copied');
-                    btn.textContent = '📋 コピー';
+                    btn.innerHTML = '<span id="btn-copy-text">' + t('btnCopy') + '</span>';
                 }, 2000);
             } catch {
                 showToast('URLをコピーしてね: ' + url);
@@ -1329,7 +1562,7 @@
             const support = document.getElementById('my-support').value.trim();
 
             if (!name || !tank || !dps || !support) {
-                showToast('⚠️ 全部入力してにゃ！');
+                showToast(t('toastFillAll'));
                 return;
             }
 
@@ -1338,7 +1571,7 @@
             const existing = snap.val() || {};
             const keys = Object.keys(existing);
             if (!existing[myPlayerId] && keys.length >= 10) {
-                showToast('⚠️ もう10人集まっちゃったにゃ！');
+                showToast(t('toastAlreadyFull'));
                 return;
             }
 
@@ -1348,7 +1581,7 @@
             });
 
             lockMyInputs();
-            showToast('登録したにゃ！🎉');
+            showToast(t('toastSaved'));
         }
 
         // ===== 入力をロック =====
@@ -1357,7 +1590,7 @@
             const btn = document.getElementById('btn-save-my');
             btn.disabled = true;
             btn.classList.add('saved');
-            btn.textContent = '✅ 登録済み！';
+            btn.textContent = t('btnSaved');
         }
 
         // ===== リアルタイムリスナー =====
@@ -1419,8 +1652,8 @@
                 chip.innerHTML = `
       <div class="member-dot online"></div>
       <div>
-        <div class="member-chip-name">${data.name}${isMe ? '（あなた）' : ''}</div>
-        <div class="member-chip-status">入力済み ✅</div>
+        <div class="member-chip-name">${data.name}${isMe ? t('memberYou') : ''}</div>
+        <div class="member-chip-status">${t('memberFilled')}</div>
       </div>
     `;
                 list.appendChild(chip);
@@ -1433,7 +1666,7 @@
                 chip.innerHTML = `
       <div class="member-dot offline"></div>
       <div>
-        <div class="member-chip-name" style="color:var(--text-secondary)">待機中…</div>
+        <div class="member-chip-name" style="color:var(--text-secondary)">${t('memberWaiting')}</div>
       </div>
     `;
                 list.appendChild(chip);
@@ -1459,7 +1692,7 @@
             const snap = await roomRef.child('players').once('value');
             const playersData = snap.val();
             if (!playersData || Object.keys(playersData).length < 10) {
-                showToast('⚠️ まだ10人集まってないにゃ！');
+                showToast(t('toastNotEnough'));
                 return;
             }
 
@@ -1532,7 +1765,7 @@
             const counter = document.getElementById('announce-counter');
 
             announceCard.classList.remove('show');
-            bubble.innerHTML = '<span class="shimmer-text">にゃ〜！ルーレット回すよ〜！</span>';
+            bubble.innerHTML = `<span class="shimmer-text">${t('catStart')}</span>`;
 
             prepareSlotReels(teamA, teamB);
             await wait(1500);
@@ -1546,21 +1779,20 @@
                 const member = announceOrder[i];
                 counter.textContent = `${i + 1} / ${announceOrder.length}`;
 
-                bubble.innerHTML = '<span class="shimmer-text">にゃにゃにゃ… 🎰</span>';
+                bubble.innerHTML = `<span class="shimmer-text">${t('catSpin')}</span>`;
                 announceCard.classList.remove('show');
                 await spinSlots(member);
 
                 const roleName = getRoleDisplayName(member.role);
                 const roleColor = getRoleColor(member.role);
-                const teamName = member.team === 'A' ? 'チームA 🟠' : 'チームB 🔵';
+                const teamName = member.team === 'A' ? t('teamA') : t('teamB');
                 const teamClass = member.team === 'A' ? 'team-a-card' : 'team-b-card';
 
-                bubble.innerHTML = `
-      <span>${member.name}さんは<br>
-      <b style="color:${member.team === 'A' ? 'var(--accent-orange)' : 'var(--accent-blue)'}">${teamName}</b>の
-      <b style="color:${roleColor}">${roleName}</b>！<br>
-      使うキャラは <b style="color:${roleColor}">${member.hero}</b> だにゃ！🐱</span>
-    `;
+                if (currentLang === 'ja') {
+                    bubble.innerHTML = `<span>${member.name}さんは<br><b style="color:${member.team === 'A' ? 'var(--accent-orange)' : 'var(--accent-blue)'}">${teamName}</b>の<b style="color:${roleColor}">${roleName}</b>！<br>使うキャラは <b style="color:${roleColor}">${member.hero}</b> だにゃ！🐱</span>`;
+                } else {
+                    bubble.innerHTML = `<span>${member.name} is on<br><b style="color:${member.team === 'A' ? 'var(--accent-orange)' : 'var(--accent-blue)'}">${teamName}</b><br>as <b style="color:${roleColor}">${roleName}</b>!<br>Playing <b style="color:${roleColor}">${member.hero}</b>! 🐱</span>`;
+                }
 
                 announceCard.className = 'announce-card show ' + teamClass;
                 document.getElementById('announce-team').textContent = teamName;
@@ -1574,7 +1806,7 @@
                 await wait(2800);
             }
 
-            bubble.innerHTML = '<span>全員決まったにゃ！🎉 結果を表示するにゃ〜！</span>';
+            bubble.innerHTML = `<span>${t('catFinish')}</span>`;
             await wait(2000);
 
             showScreen('screen-result');
@@ -1709,7 +1941,7 @@
             const btn = document.getElementById('btn-save-my');
             btn.disabled = false;
             btn.classList.remove('saved');
-            btn.textContent = '✅ 登録する！';
+            btn.textContent = t('btnSave');
 
             showScreen('screen-lobby');
         }
@@ -1721,7 +1953,7 @@
         }
 
         function getRoleDisplayName(role) {
-            return { tank: 'タンク', dps: 'DPS', support: 'サポート' }[role] || role;
+            return { tank: t('roleTank'), dps: t('roleDps'), support: t('roleSupport') }[role] || role;
         }
 
         function getRoleColor(role) {

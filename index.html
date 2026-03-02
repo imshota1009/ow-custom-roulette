@@ -740,6 +740,64 @@
             }
         }
 
+        /* ===== 言語スイッチ ===== */
+        .lang-switch {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 10;
+        }
+
+        .lang-switch .lang-label {
+            font-size: 1.1rem;
+            cursor: pointer;
+            opacity: 0.4;
+            transition: all 0.3s ease;
+            user-select: none;
+        }
+
+        .lang-switch .lang-label.active {
+            opacity: 1;
+            transform: scale(1.15);
+            filter: drop-shadow(0 0 6px rgba(249, 158, 26, 0.5));
+        }
+
+        .lang-toggle {
+            width: 48px;
+            height: 26px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 13px;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .lang-toggle:hover {
+            border-color: var(--accent-orange);
+            box-shadow: 0 0 10px rgba(249, 158, 26, 0.2);
+        }
+
+        .lang-toggle-knob {
+            width: 20px;
+            height: 20px;
+            background: linear-gradient(135deg, var(--accent-orange), #ff6b35);
+            border-radius: 50%;
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .lang-toggle.en .lang-toggle-knob {
+            left: 24px;
+            background: linear-gradient(135deg, var(--accent-blue), #2196F3);
+        }
+
         /* ===== レスポンシブ ===== */
         @media (max-width: 600px) {
             .app-header h1 {
@@ -762,6 +820,11 @@
                 font-size: 0.95rem;
                 padding: 15px 18px;
             }
+
+            .lang-switch {
+                top: 10px;
+                right: 10px;
+            }
         }
     </style>
 </head>
@@ -773,8 +836,15 @@
 
     <!-- ヘッダー -->
     <header class="app-header">
-        <h1>🎮 OW カスタムルーレット 🐱</h1>
-        <p>10人のキャラを入力して、チームとロールをルーレットで決めよう！</p>
+        <div class="lang-switch" id="lang-switch">
+            <span class="lang-label active" id="lang-ja">🇯🇵</span>
+            <div class="lang-toggle" id="lang-toggle" onclick="toggleLanguage()">
+                <div class="lang-toggle-knob"></div>
+            </div>
+            <span class="lang-label" id="lang-en">🇺🇸</span>
+        </div>
+        <h1 id="app-title">🎮 OW カスタムルーレット 🐱</h1>
+        <p id="app-subtitle">10人のキャラを入力して、チームとロールをルーレットで決めよう！</p>
     </header>
 
     <div class="container">
@@ -783,7 +853,7 @@
         <div class="screen active" id="screen-input">
             <div class="progress-section">
                 <div class="progress-text">
-                    <span>プレイヤー入力</span>
+                    <span id="progress-label">プレイヤー入力</span>
                     <span id="progress-count">0 / 10</span>
                 </div>
                 <div class="progress-bar-wrapper">
@@ -796,7 +866,7 @@
             </div>
 
             <button class="btn-primary" id="btn-start" disabled>
-                🎰 ルーレット開始！
+                <span id="btn-start-text">🎰 ルーレット開始！</span>
             </button>
         </div>
 
@@ -810,7 +880,7 @@
             </div>
 
             <div class="speech-bubble" id="speech-bubble">
-                <span class="shimmer-text">にゃ〜！ルーレット回すよ〜！</span>
+                <span class="shimmer-text" id="cat-start-text">にゃ〜！ルーレット回すよ〜！</span>
             </div>
 
             <div class="slot-machine" id="slot-machine">
@@ -847,7 +917,7 @@
         <!-- ===== 結果画面 ===== -->
         <div class="screen result-screen" id="screen-result">
             <div class="result-header">
-                <h2>⚔️ チーム編成 ⚔️</h2>
+                <h2 id="result-title">⚔️ チーム編成 ⚔️</h2>
             </div>
             <div class="teams-container">
                 <div class="team-block team-a" id="team-a-block">
@@ -859,12 +929,141 @@
                 </div>
             </div>
 
-            <button class="btn-secondary" id="btn-retry" style="margin-top:30px;">🔄 もう一回振り分ける</button>
-            <button class="btn-secondary" id="btn-reset">📝 最初からやり直す</button>
+            <button class="btn-secondary" id="btn-retry" style="margin-top:30px;"><span id="btn-retry-text">🔄
+                    もう一回振り分ける</span></button>
+            <button class="btn-secondary" id="btn-reset"><span id="btn-reset-text">📝 最初からやり直す</span></button>
         </div>
     </div>
 
     <script>
+        // ===== 多言語対応 =====
+        let currentLang = 'ja';
+
+        const i18n = {
+            ja: {
+                appTitle: '🎮 OW カスタムルーレット 🐱',
+                appSubtitle: '10人のキャラを入力して、チームとロールをルーレットで決めよう！',
+                progressLabel: 'プレイヤー入力',
+                btnStart: '🎰 ルーレット開始！',
+                resultTitle: '⚔️ チーム編成 ⚔️',
+                btnRetry: '🔄 もう一回振り分ける',
+                btnReset: '📝 最初からやり直す',
+                playerNum: (n) => `PLAYER ${n}`,
+                labelName: '👤 名前',
+                labelTank: 'タンク',
+                labelDps: 'DPS',
+                labelSupport: 'サポート',
+                placeholderName: 'プレイヤー名',
+                placeholderTank: '例: ラインハルト',
+                placeholderDps: '例: ゲンジ',
+                placeholderSupport: '例: アナ',
+                slotTeam: 'チーム',
+                slotRole: 'ロール',
+                slotPlayer: 'プレイヤー',
+                catStart: 'にゃ〜！ルーレット回すよ〜！',
+                catSpin: 'にゃにゃにゃ… 🎰',
+                catAnnounce: (name, team, role, hero) =>
+                    `${name}さんは<br><b style="color:${team === 'A' ? 'var(--accent-orange)' : 'var(--accent-blue)'}">${team === 'A' ? 'チームA 🟠' : 'チームB 🔵'}</b>の<br><b style="color:${getRoleColor(role)}">${getRoleDisplayName(role)}</b>！<br>使うキャラは <b style="color:${getRoleColor(role)}">${hero}</b> だにゃ！🐱`,
+                catFinish: '全員決まったにゃ！🎉 結果を表示するにゃ〜！',
+                teamA: 'チームA 🟠',
+                teamB: 'チームB 🔵',
+                roleTank: 'タンク',
+                roleDps: 'DPS',
+                roleSupport: 'サポート',
+            },
+            en: {
+                appTitle: '🎮 OW Custom Roulette 🐱',
+                appSubtitle: 'Enter 10 players and let the roulette decide teams and roles!',
+                progressLabel: 'Player Input',
+                btnStart: '🎰 Start Roulette!',
+                resultTitle: '⚔️ Team Lineup ⚔️',
+                btnRetry: '🔄 Shuffle Again',
+                btnReset: '📝 Start Over',
+                playerNum: (n) => `PLAYER ${n}`,
+                labelName: '👤 Name',
+                labelTank: 'Tank',
+                labelDps: 'DPS',
+                labelSupport: 'Support',
+                placeholderName: 'Player name',
+                placeholderTank: 'e.g. Reinhardt',
+                placeholderDps: 'e.g. Genji',
+                placeholderSupport: 'e.g. Ana',
+                slotTeam: 'Team',
+                slotRole: 'Role',
+                slotPlayer: 'Player',
+                catStart: 'Meow~! Let\'s spin the roulette~!',
+                catSpin: 'Spinning… 🎰',
+                catAnnounce: (name, team, role, hero) =>
+                    `${name} is on<br><b style="color:${team === 'A' ? 'var(--accent-orange)' : 'var(--accent-blue)'}">${team === 'A' ? 'Team A 🟠' : 'Team B 🔵'}</b><br>as <b style="color:${getRoleColor(role)}">${getRoleDisplayName(role)}</b>!<br>Playing <b style="color:${getRoleColor(role)}">${hero}</b>! 🐱`,
+                catFinish: 'All done! 🎉 Here are the results~!',
+                teamA: 'Team A 🟠',
+                teamB: 'Team B 🔵',
+                roleTank: 'Tank',
+                roleDps: 'DPS',
+                roleSupport: 'Support',
+            }
+        };
+
+        function t(key) {
+            return i18n[currentLang][key];
+        }
+
+        function toggleLanguage() {
+            currentLang = currentLang === 'ja' ? 'en' : 'ja';
+            const toggle = document.getElementById('lang-toggle');
+            const labelJa = document.getElementById('lang-ja');
+            const labelEn = document.getElementById('lang-en');
+
+            if (currentLang === 'en') {
+                toggle.classList.add('en');
+                labelJa.classList.remove('active');
+                labelEn.classList.add('active');
+            } else {
+                toggle.classList.remove('en');
+                labelJa.classList.add('active');
+                labelEn.classList.remove('active');
+            }
+
+            applyLanguage();
+        }
+
+        function applyLanguage() {
+            // ヘッダー
+            document.getElementById('app-title').textContent = t('appTitle');
+            document.getElementById('app-subtitle').textContent = t('appSubtitle');
+
+            // 入力画面
+            document.getElementById('progress-label').textContent = t('progressLabel');
+            document.getElementById('btn-start-text').textContent = t('btnStart');
+
+            // プレイヤーカードのラベル・プレースホルダー
+            document.querySelectorAll('.player-card').forEach((card, i) => {
+                card.querySelector('.player-num').textContent = t('playerNum')(i + 1);
+                const labels = card.querySelectorAll('.input-group label');
+                const inputs = card.querySelectorAll('.input-group input');
+                if (labels[0]) labels[0].innerHTML = t('labelName');
+                if (labels[1]) labels[1].innerHTML = `<span class="role-icon tank-icon"></span>${t('labelTank')}`;
+                if (labels[2]) labels[2].innerHTML = `<span class="role-icon dps-icon"></span>${t('labelDps')}`;
+                if (labels[3]) labels[3].innerHTML = `<span class="role-icon support-icon"></span>${t('labelSupport')}`;
+                if (inputs[0]) inputs[0].placeholder = t('placeholderName');
+                if (inputs[1]) inputs[1].placeholder = t('placeholderTank');
+                if (inputs[2]) inputs[2].placeholder = t('placeholderDps');
+                if (inputs[3]) inputs[3].placeholder = t('placeholderSupport');
+            });
+
+            // スロットラベル
+            const slotLabels = document.querySelectorAll('.slot-column-label');
+            if (slotLabels[0]) slotLabels[0].textContent = t('slotTeam');
+            if (slotLabels[1]) slotLabels[1].textContent = t('slotRole');
+            if (slotLabels[2]) slotLabels[2].textContent = t('slotPlayer');
+
+            // 結果画面
+            const resultTitle = document.getElementById('result-title');
+            if (resultTitle) resultTitle.textContent = t('resultTitle');
+            document.getElementById('btn-retry-text').textContent = t('btnRetry');
+            document.getElementById('btn-reset-text').textContent = t('btnReset');
+        }
+
         // ===== データ管理 =====
         const players = [];
         const TOTAL_PLAYERS = 10;
@@ -1040,22 +1239,17 @@
                 counter.textContent = `${i + 1} / ${announceOrder.length}`;
 
                 // スロット回転演出
-                bubble.innerHTML = '<span class="shimmer-text">にゃにゃにゃ… 🎰</span>';
+                bubble.innerHTML = `<span class="shimmer-text">${t('catSpin')}</span>`;
                 announceCard.classList.remove('show');
                 await spinSlots(member);
 
                 // 発表！
                 const roleName = getRoleDisplayName(member.role);
                 const roleColor = getRoleColor(member.role);
-                const teamName = member.team === 'A' ? 'チームA 🟠' : 'チームB 🔵';
+                const teamName = member.team === 'A' ? t('teamA') : t('teamB');
                 const teamClass = member.team === 'A' ? 'team-a-card' : 'team-b-card';
 
-                bubble.innerHTML = `
-      <span>${member.name}さんは<br>
-      <b style="color:${member.team === 'A' ? 'var(--accent-orange)' : 'var(--accent-blue)'}">${teamName}</b>の
-      <b style="color:${roleColor}">${roleName}</b>！<br>
-      使うキャラは <b style="color:${roleColor}">${member.hero}</b> だにゃ！🐱</span>
-    `;
+                bubble.innerHTML = `<span>${t('catAnnounce')(member.name, member.team, member.role, member.hero)}</span>`;
 
                 announceCard.className = 'announce-card show ' + teamClass;
                 document.getElementById('announce-team').textContent = teamName;
@@ -1070,7 +1264,7 @@
             }
 
             // 全員発表完了
-            bubble.innerHTML = '<span>全員決まったにゃ！🎉 結果を表示するにゃ〜！</span>';
+            bubble.innerHTML = `<span>${t('catFinish')}</span>`;
             await wait(2000);
 
             // 結果画面
@@ -1191,7 +1385,7 @@
         }
 
         function getRoleDisplayName(role) {
-            return { tank: 'タンク', dps: 'DPS', support: 'サポート' }[role] || role;
+            return { tank: t('roleTank'), dps: t('roleDps'), support: t('roleSupport') }[role] || role;
         }
 
         function getRoleColor(role) {

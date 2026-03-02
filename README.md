@@ -1,90 +1,90 @@
-# 🎮 OW カスタムルーレット 🐱
+# 🎮 OW Custom Roulette 🐱
 
-オーバーウォッチのカスタムゲーム（10人）で、チームとロールをルーレットで決めるWebアプリ！
+A web app that uses a roulette to decide teams and roles for Overwatch custom games (10 players)!
 
-🌐 **アプリURL**: [https://ow-custom-roulette.web.app](https://ow-custom-roulette.web.app)
-
----
-
-## ✨ 特徴
-
-- 🏠 **ルーム機能** — 部屋を作ってURLを共有するだけ！各自のスマホ・PCから参加できる
-- 🎰 **ルーレット演出** — スロットマシン風の演出で盛り上がる！
-- 🐱 **ねこが発表** — かわいいねこキャラが1人ずつロールとキャラを発表
-- ⚔️ **5vs5 自動編成** — タンク1 / DPS2 / サポート2 の正しい編成で自動振り分け
-- 🎯 **自分のキャラを使う** — 各ロールで自分が1番使っているキャラが割り当てられる
+🌐 **App URL**: [https://ow-custom-roulette.web.app](https://ow-custom-roulette.web.app)
 
 ---
 
-## 📖 使い方
+## ✨ Features
 
-### 1️⃣ 部屋をつくる
-ホスト役の人が「🏠 部屋をつくる」をタップ
-
-### 2️⃣ URLを共有
-表示されたURLを友達にLINEなどで共有（📋コピーボタンあり）
-
-### 3️⃣ キャラを入力
-全員がURLを開いて、自分の **名前・タンク・DPS・サポート** の得意キャラを入力して「登録する！」
-
-### 4️⃣ ルーレット開始！
-10人全員揃ったら、ホストが「🎰 ルーレット開始！」ボタンをタップ
-
-### 5️⃣ 結果発表！
-ねこが1人ずつ発表 → チームA vs チームB の編成一覧が表示！
+- 🏠 **Room System** — Create a room and share the URL! Everyone can join from their phone or PC
+- 🎰 **Roulette Animation** — Exciting slot machine-style presentation!
+- 🐱 **Cat Announcer** — A cute cat character announces each player's role and hero one by one
+- ⚔️ **Automatic 5vs5 Composition** — Auto-assigns with proper team comp: 1 Tank / 2 DPS / 2 Support
+- 🎯 **Play Your Main** — Each player gets assigned their own most-played hero for that role
 
 ---
 
-## 🛠️ 技術スタック
+## 📖 How to Use
 
-| 技術 | 用途 |
+### 1️⃣ Create a Room
+The host taps "🏠 Create Room"
+
+### 2️⃣ Share the URL
+Share the displayed URL with friends via messaging apps (📋 Copy button included)
+
+### 3️⃣ Enter Your Heroes
+Everyone opens the URL and enters their **name, main Tank, DPS, and Support heroes**, then taps "Register!"
+
+### 4️⃣ Start the Roulette!
+Once all 10 players have joined, the host taps "🎰 Start Roulette!"
+
+### 5️⃣ Results!
+The cat announces each player one by one → Team A vs Team B lineup is displayed!
+
+---
+
+## 🛠️ Tech Stack
+
+| Technology | Purpose |
 |------|------|
-| HTML / CSS / JavaScript | フロントエンド |
-| Firebase Realtime Database | リアルタイムデータ同期 |
-| Firebase Hosting | Webホスティング |
+| HTML / CSS / JavaScript | Frontend |
+| Firebase Realtime Database | Real-time data sync |
+| Firebase Hosting | Web hosting |
 
 ---
 
-## 📸 スクリーンショット
+## 📸 Screenshots
 
-### ロビー画面
-<img src="images/lobby.png" alt="ロビー画面" width="600">
+### Lobby Screen
+<img src="images/lobby.png" alt="Lobby Screen" width="600">
 
-### メニュー画面
-<img src="images/menu.png" alt="メニュー画面" width="600">
+### Menu Screen
+<img src="images/menu.png" alt="Menu Screen" width="600">
 
 ---
 
-## 🚀 セットアップ（開発者向け）
+## 🚀 Setup (For Developers)
 
 ```bash
-# クローン
+# Clone
 git clone https://github.com/imshota1009/ow-custom-roulette.git
 cd ow-custom-roulette
 
-# Firebase CLIをインストール
+# Install Firebase CLI
 npm install -g firebase-tools
 
-# Firebaseにログイン
+# Login to Firebase
 firebase login
 
-# ローカルでテスト
+# Test locally
 firebase serve
 
-# デプロイ
+# Deploy
 firebase deploy
 ```
 
 ---
 
-## 📄 ライセンス
+## 📄 License
 
-このプロジェクトは [MIT License](LICENSE) の下で公開されています。
+This project is licensed under the [MIT License](LICENSE).
 
-## 🤝 コントリビュート
+## 🤝 Contributing
 
-貢献方法については [CONTRIBUTING.md](CONTRIBUTING.md) をご覧ください。
+See [CONTRIBUTING.md](CONTRIBUTING.md) for how to contribute.
 
-## 📚 学習
+## 📚 Learn
 
-このプロジェクトの技術的な詳細は [LEARN.md](LEARN.md) をご覧ください。
+See [LEARN.md](LEARN.md) for technical details about this project.
